@@ -5,7 +5,7 @@
 import keys
 import tweepy
 
-def get_tweets():
+def download_tweets():
   auth = tweepy.OAuthHandler(keys.twitter_consumer_key, 
                              keys.twitter_consumer_secret)
   auth.set_access_token(keys.twitter_access_token, 

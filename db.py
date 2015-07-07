@@ -1,12 +1,12 @@
 import sqlite3
 
 from nltk.corpus import stopwords
-from twitter import get_tweets
-
+import twitter
+import sys
 import datetime
 import dateutil.parser
 
-def twitter2db():
+def create_entries_table():
   conn = sqlite3.connect('food-processor.db')
   cur = conn.cursor()
   create_table_sql = "CREATE TABLE entries (twitter_id integer, date text, contents text)"
@@ -14,13 +14,16 @@ def twitter2db():
   try:
     cur.execute(create_table_sql)
   except sqlite3.OperationalError:
-    pass
+    print "didn't make entries table, already created"
 
-  tweets = get_tweets()
+def save_tweets():
+  conn = sqlite3.connect('food-processor.db')
+  cur = conn.cursor()
+
+  tweets = twitter.download_tweets()
   tweets = [(tweet.id, tweet.created_at.isoformat(), tweet.text) for tweet in tweets]
 
   cur.executemany('INSERT INTO entries VALUES (?, ?, ?)', tweets)
-
   conn.commit()
 
 def read_tweets():
@@ -29,7 +32,7 @@ def read_tweets():
   rows = cur.execute('SELECT * FROM entries')
   return [(row[0], dateutil.parser.parse(row[1]), row[2]) for row in rows]
 
-def write_bad_words_db():
+def create_bad_words_table():
   conn = sqlite3.connect('food-processor.db')
   cur = conn.cursor()
 
@@ -37,7 +40,11 @@ def write_bad_words_db():
   try:
     cur.execute(create_table_sql)
   except sqlite3.OperationalError:
-    pass
+    print "didn't make bad words table, already created"
+
+def save_bad_words():
+  conn = sqlite3.connect('food-processor.db')
+  cur = conn.cursor()
 
   bad_words = stopwords.words('english')
   bad_words = bad_words + ["w", "ClayEatsFood", "cup", "x"]
@@ -50,3 +57,18 @@ def read_bad_words():
   cur = conn.cursor()
   rows = cur.execute('SELECT * FROM bad_words')
   return [row[0] for row in rows]
+
+if __name__ == '__main__':
+  if len(sys.argv) > 1:
+    try:
+      ans = locals()[sys.argv[1]]()
+      if (isinstance(ans, list)):
+        for a in ans:
+          print a
+    except KeyError:
+      print sys.argv[1], "does not exist"
+  else:
+    ls = dict(locals())
+    for k in ls:
+      if hasattr(ls[k], '__call__'):
+        print k

@@ -28,9 +28,7 @@ for text in texts:
     add_to_hist(d, word)
 
 sorted_d = sorted(d.items(), key=operator.itemgetter(1))
-
 print sorted_d
-
 for word, n in sorted_d:
   print word.ljust(30), '*' * n
 
