@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}home{% endblock %}
+
+{% block content %}
+<h3>login</h3>
+<form action="{{ url_for('login') }}" method="post">
+    <input type="text" name="email" />
+    <input type="password" name="password" />
+    {{ form.csrf_token }}
+    <input type="submit" value="Log In">
+</form>
+{% endblock %}
+
+
