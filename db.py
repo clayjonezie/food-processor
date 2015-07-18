@@ -46,9 +46,9 @@ def save_bad_words():
   conn = sqlite3.connect('food-processor.db')
   cur = conn.cursor()
 
-  bad_words = stopwords.words('english')
-  bad_words = bad_words + ["w", "ClayEatsFood", "cup", "x"]
-  bad_words = [(word,) for word in bad_words]
+  # bad_words = stopwords.words('english')
+  bad_words = ["@ClayEatsFood", "remaining", "="]
+  bad_words = [(word.lower(),) for word in bad_words]
   cur.executemany('INSERT INTO bad_words VALUES (?)', bad_words)
   conn.commit()
 
