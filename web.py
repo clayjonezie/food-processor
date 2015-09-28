@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 from database import db_session
 
-from .forms import EmailPasswordForm
+from forms import EmailPasswordForm
 
 SQLALCHEMY_DATABASE_URI = "sqlite:////var/www/foodprocessor/foodprocessor.db"
 
@@ -19,9 +19,9 @@ def home():
 def login():
     form = EmailPasswordForm()
     if form.validate_on_submit():
-        # log em in
         return redirect(url_for('home'))
-    return render_template('login.html', form=form)
+    else:
+        return render_template('login.html', form=form)
 
 
 @app.teardown_appcontext
