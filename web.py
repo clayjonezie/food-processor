@@ -1,6 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 from database import db_session
+from flask.ext.login import LoginManager
+from flask.ext.bcrypt import Bcrypt
 
 from forms import EmailPasswordForm
 
@@ -8,6 +10,7 @@ SQLALCHEMY_DATABASE_URI = "sqlite:////var/www/foodprocessor/foodprocessor.db"
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
+my_bcrypt = Bcrypt(app)
 
 
 @app.route("/")
@@ -30,4 +33,5 @@ def shutdown_session(exception=None):
 
 
 if __name__ == "__main__":
-  app.run()
+  app.secret_key='dogfood'
+  app.run(debug=True)
