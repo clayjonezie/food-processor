@@ -6,12 +6,13 @@ from flask.ext.bcrypt import Bcrypt
 
 from forms import EmailPasswordForm
 
-SQLALCHEMY_DATABASE_URI = "sqlite:////var/www/foodprocessor/foodprocessor.db"
 
 app = Flask(__name__)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/www/foodprocessor/foodprocessor.db"
+
 db = SQLAlchemy(app)
 my_bcrypt = Bcrypt(app)
-
 
 @app.route("/")
 def home():
