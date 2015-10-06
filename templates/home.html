@@ -4,7 +4,10 @@
 
 {% block my_content %}
 {{ super() }}
-<h3>homie</h3>
+<h3>home</h3>
+{% if current_user.is_authenticated %}
+<a href="{{ url_for('raw_entries') }}">raw entries</a>
+{% endif %}
 {% endblock %}
 
 

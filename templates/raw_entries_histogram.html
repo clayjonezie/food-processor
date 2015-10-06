@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}raw entries histogram{% endblock %}
+
+{% block my_content %}
+<h3>histogram</h3>
+
+<div class="row">
+<div class="col-md-8">
+<ul>
+{% for e in hist %}
+<li>
+{{ e[0] }}
+<div style="background-color:green;height:20px;width:{{ e[1] * 17 }}px"></div>
+</li>
+{% endfor %}
+</ul>
+</div>
+
+<div class="col-md-4">
+// tbd
+</div>
+
+{% endblock %}

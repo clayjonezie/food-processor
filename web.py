@@ -23,6 +23,7 @@ login_manager.init_app(app)
 from forms import *
 from models import *
 import fpdb
+from fplib import nlp
 
 @app.route("/")
 def home():
@@ -48,6 +49,12 @@ def import_from_twitter():
     flash('form did not validate')
   return redirect(url_for('raw_entries'))
 
+@app.route('/raw_entries/historgram')
+@login_required
+def raw_entries_histogram():
+  badwords = [w.word for w in BadWord.query.all()]
+  texts = [re.content for re in current_user.raw_entries]
+  return render_template('raw_entries_histogram.html', hist=nlp.histogram(texts, badwords))
 
 
 @app.route('/login', methods=["GET", "POST"])

@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 import sys
 import datetime
 import dateutil.parser
-from models import User, RawEntry
+from models import *
 from fplib import twitter
 
 def save_tweets(db, user, screen_name):
@@ -14,27 +14,18 @@ def save_tweets(db, user, screen_name):
   db.session.commit()
   return len(raw_entries)
 
+def save_bad_words(db):
+  bad_words = stopwords.words('english')
+  bad_words = [word.lower() for word in bad_words]
+
+  for word in bad_words:
+    bw = BadWord(word=word)
+    db.session.add(bw)
+
+  db.session.commit()
+
+ 
 # depricated
-# def create_bad_words_table():
-#   conn = sqlite3.connect('food-processor.db')
-#   cur = conn.cursor()
-# 
-#   create_table_sql = "CREATE TABLE bad_words (word text)"
-#   try:
-#     cur.execute(create_table_sql)
-#   except sqlite3.OperationalError:
-#     print "didn't make bad words table, already created"
-# 
-# def save_bad_words():
-#   conn = sqlite3.connect('food-processor.db')
-#   cur = conn.cursor()
-# 
-#   # bad_words = stopwords.words('english')
-#   bad_words = ["@ClayEatsFood", "remaining", "="]
-#   bad_words = [(word.lower(),) for word in bad_words]
-#   cur.executemany('INSERT INTO bad_words VALUES (?)', bad_words)
-#   conn.commit()
-# 
 # def read_bad_words():
 #   conn = sqlite3.connect('food-processor.db')
 #   cur = conn.cursor()
