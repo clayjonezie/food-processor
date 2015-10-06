@@ -4,7 +4,64 @@
 
 {% block my_content %}
 {{ super() }}
-<h3>home</h3>
+<h2>about</h2>
+<p>
+This is Clay Jones' senior project for his Computer Science degree at California Polytechnic State University. 
+</p>
+<h2>problem</h2>
+<p>It is an insightful health practice but not a technical challenge to simply record all the food a patient eats. 
+However, there are many ways to improve the patient's likelihood to record all food, quality of the data, 
+and quality of the advice provided. Existing solutions lack customization, 
+were designed on outdated nutrition practices, have suboptimal user interfaces, and lack clinical application. 
+</p><p>
+It is a meticulous process to enter the nutrition info of every single thing you eat, 
+especially when following a diet that is low in commercially prepared foods (perhaps lacking labels or brand names). 
+We are asking patients to take a small amount of time every time they eat to enter this data. 
+This leads to patients forgetting or quitting the food tracking habit. 
+</p><p>
+Technology can be employed to assist with this. 
+</p>
+
+<h2>for testers</h2>
+<p>
+Please contact me for a testing account. Your data will be used by the system and visible to developers (myself).
+No other users will be able to see your food log. I do my best to backup all data but this project is a work in progress
+and highly unstable. 
+</p>
+
+<h2>data sources</h2>
+<p>
+Nutrition info via <a href="http://ndb.nal.usda.gov/">USDA National Nutrient Database</a>
+</p>
+<p>
+NLP corpora via <a href="http://www.nltk.org/api/nltk.corpus.html">NLTK</a>
+</p>
+<h2>open source projects used here</h2>
+<p>
+pip freeze: 
+<pre>
+alembic
+Flask
+Flask-Bcrypt
+Flask-Bootstrap
+Flask-Login
+Flask-Migrate
+Flask-Moment
+Flask-Script
+Flask-SQLAlchemy
+Flask-WTF
+itsdangerous
+Jinja2
+nltk
+oauth
+requests
+SQLAlchemy
+tweepy
+Twisted
+Werkzeug
+WTForms
+</pre>
+</p>
 {% endblock %}
 
 
