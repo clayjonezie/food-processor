@@ -36,7 +36,23 @@
       {% endif %}
     {% endwith %}
     </div>
+    <div class="row">
+    <div class="col-md-3 border">
+    {% block menu_left %}
+    <ul>
+        <li><a href="{{ url_for('home') }}">home</a></li>
+        {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('raw_entries') }}">raw entries</a>
+            <li><a href="{{ url_for('raw_entries_histogram') }}">raw entries histogram</a>
+        </li>
+        {% endif %}
+    </ul>
+    {% endblock %}
+    </div>
+    <div class="col-md-9">
     {% block my_content %}
     {% endblock %}
+    </div>
+    </div>
 </div>
 {% endblock %}

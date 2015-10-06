@@ -8,7 +8,7 @@ from flask_wtf.csrf import CsrfProtect
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///foodprocessor.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/www/foodprocessor/foodprocessor/foodprocessor.db"
 app.config["DEBUG"] = True
 app.secret_key = 'dogfood'
 

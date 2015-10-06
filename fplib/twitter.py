@@ -13,7 +13,7 @@ def download_tweets(screen_name):
 
   api = tweepy.API(auth)
 
-  # todo count=1000 probably will not actually work
+  # # todo count=1000 probably will not actually work
   tweets = api.user_timeline(screen_name=screen_name, count=1000)
   return tweets
 
