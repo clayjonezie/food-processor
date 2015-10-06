@@ -4,6 +4,7 @@ from flask.ext.login import LoginManager, login_user, logout_user, login_require
 from flask.ext.bcrypt import Bcrypt
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.moment import Moment
+from flask_wtf.csrf import CsrfProtect
 
 app = Flask(__name__)
 
