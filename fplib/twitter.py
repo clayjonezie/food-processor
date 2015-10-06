@@ -5,7 +5,7 @@
 import keys
 import tweepy
 
-def download_tweets():
+def download_tweets(screen_name):
   auth = tweepy.OAuthHandler(keys.twitter_consumer_key, 
                              keys.twitter_consumer_secret)
   auth.set_access_token(keys.twitter_access_token, 
@@ -14,5 +14,6 @@ def download_tweets():
   api = tweepy.API(auth)
 
   # todo count=1000 probably will not actually work
-  tweets = api.user_timeline(screen_name=keys.twitter_screen_name, count=1000)
+  tweets = api.user_timeline(screen_name=screen_name, count=1000)
   return tweets
+

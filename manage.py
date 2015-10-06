@@ -1,13 +1,15 @@
 import os
 from web import app, db
 
-from models import User, Entry
+from models import User, RawEntry
 
 from flask.ext.script import Manager, Shell
 from flask.ext.migrate import Migrate, MigrateCommand
 
 manager = Manager(app)
 migrate = Migrate(app, db)
+
+app.debug=True
 
 def make_shell_context():
   return dict(app=app, db=db, User=User)

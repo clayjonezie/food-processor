@@ -1,25 +1,12 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}home{% endblock %}
+{% block title %}login{% endblock %}
 
 {% block content %}
 <h3>login</h3>
 <form action="{{ url_for('login') }}" method="post">
-
-    {% if form.errors %}
-        <ul class="errors">
-            {% for field_name, field_errors in form.errors|dictsort if field_errors %}
-                {% for error in field_errors %}
-                    <li>{{ form[field_name].label }}: {{ error }}</li>
-                {% endfor %}
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    {{ form.email }}
-    {{ form.password }}
-    {{ form.csrf_token }}
-    <input type="submit" value="Log In">
+  {{ wtf.quick_form(form) }}
 </form>
 {% endblock %}
 
