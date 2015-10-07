@@ -59,6 +59,6 @@ class BadWord(db.Model):
     return '<BadWord: %r>' % self.word
 
 
-class Food(db.Model)
+class Food(db.Model):
   __tablename__ = 'foods'
   id = db.Column(db.Integer, primary_key=True)
