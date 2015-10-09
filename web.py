@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.bcrypt import Bcrypt
@@ -28,6 +28,20 @@ from models import *
 import fpdb
 from fplib import nlp
 
+@app.route("/food/<int:id>")
+def food(id):
+  food = FoodDescription.query.filter_by(id=id).first()
+  if food is None:
+    abort(404)
+  return render_template("food.html", food=food)
+
+
+@app.route("/food/search/<query>")
+def food_search(query):
+  results = search_food_descriptions(query)
+  return render_template("food_search.html", results=results)
+
+
 @app.route("/")
 def home():
   return render_template('home.html')
@@ -51,6 +65,7 @@ def import_from_twitter():
   else:
     flash('form did not validate')
   return redirect(url_for('raw_entries'))
+
 
 @app.route('/raw_entries/historgram')
 @login_required
@@ -79,3 +94,6 @@ def logout():
   flash('You were logged out.')
   return redirect(url_for('home'))
 
+@app.errorhandler(404)
+def page_not_found(e):
+  return render_template('404.html'), 404

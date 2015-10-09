@@ -1,5 +1,3 @@
-import sqlite3
-
 from nltk.corpus import stopwords
 import sys
 import datetime
@@ -14,6 +12,7 @@ def save_tweets(db, user, screen_name):
   db.session.commit()
   return len(raw_entries)
 
+
 def save_bad_words(db):
   bad_words = stopwords.words('english')
   bad_words = [word.lower() for word in bad_words]
@@ -25,24 +24,3 @@ def save_bad_words(db):
   db.session.commit()
 
  
-# depricated
-# def read_bad_words():
-#   conn = sqlite3.connect('food-processor.db')
-#   cur = conn.cursor()
-#   rows = cur.execute('SELECT * FROM bad_words')
-#   return [row[0] for row in rows]
-# 
-# if __name__ == '__main__':
-#   if len(sys.argv) > 1:
-#     try:
-#       ans = locals()[sys.argv[1]]()
-#       if (isinstance(ans, list)):
-#         for a in ans:
-#           print a
-#     except KeyError:
-#       print sys.argv[1], "does not exist"
-#   else:
-#     ls = dict(locals())
-#     for k in ls:
-#       if hasattr(ls[k], '__call__'):
-#         print k

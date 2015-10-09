@@ -81,6 +81,8 @@ class FoodDescription(db.Model):
   fat_factor = db.Column(db.String(10))
   cho_factor = db.Column(db.String(10))
 
+  nutrients = db.relationship('NutrientData', backref='food')
+
 
   def from_ndb(self, ndb_row):
     self.id, self.food_group_code, self.long_desc, self.short_desc,\
@@ -92,13 +94,21 @@ class FoodDescription(db.Model):
     return self
 
 
+def search_food_descriptions(query):
+  return FoodDescription.query.filter(
+      FoodDescription.long_desc.like("%%%s%%" % query)).all()
+
+
 class NutrientDefinition(db.Model):
+  __tablename__ = 'nutrient_definitions'
   nutr_no = db.Column(db.Integer, primary_key=True)
   units = db.Column(db.String(7))
   tagname = db.Column(db.String(20))
   desc = db.Column(db.String(60))
   num_dec = db.Column(db.String(1))
   sr_order = db.Column(db.String(6))
+
+  nutrients = db.relationship('NutrientData', backref='nutrient')
 
 
   def from_ndb(self, ndb_row):
@@ -107,3 +117,30 @@ class NutrientDefinition(db.Model):
     self.nutr_no = int(self.nutr_no)
     return self
 
+
+class NutrientData(db.Model):
+  __tablename__ = 'nutrient_data'
+  id = db.Column(db.Integer, primary_key=True)
+  ndb_no = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+  nutr_no = db.Column(db.Integer, 
+      db.ForeignKey('nutrient_definitions.nutr_no'))
+  nutr_val = db.Column(db.Float)
+  num_data_pts = db.Column(db.Integer)
+  std_error = db.Column(db.Float)
+  add_nutr_mark = db.Column(db.String(2))
+  val_min = db.Column(db.Float)
+  val_max = db.Column(db.Float)
+
+  def from_ndb(self, ndb_row):
+    self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
+      self.std_error, _, _, _, self.add_nutr_mark, _, self.val_min, \
+      self.val_max, _, _, _, _, _, _, = ndb_row
+    self.ndb_no = int(self.ndb_no)
+    self.nutr_no = int(self.nutr_no)
+    self.nutr_val = float(self.nutr_val) if self.std_error != '' else None
+    self.num_data_pts = int(self.num_data_pts)
+    self.std_error = float(self.std_error) if self.std_error != '' else None
+    self.val_min = float(self.val_min) if self.val_min != '' else None
+    self.val_max = float(self.val_max) if self.val_max != '' else None
+
+    return self
