@@ -1,15 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}search results{% endblock %}
+{% block title %}search: {{ query }}{% endblock %}
 
 {% block my_content %}
 {{ super() }}
+
+{% if results|length == 0 %}
+none of ({{ query }})!
+{% else %}
+<h2>search results of ({{ query }})</h2>
+{% endif %}
 
 <table>
 {% for food in results %}
 <tr>
 
-<td>{{ food.long_desc }}</td>
+<td><a href="{{ url_for('food', id=food.id) }}">{{ food.long_desc }}</a></td>
 
 </tr>
 {% endfor %}

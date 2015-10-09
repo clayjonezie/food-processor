@@ -39,7 +39,7 @@ def food(id):
 @app.route("/food/search/<query>")
 def food_search(query):
   results = search_food_descriptions(query)
-  return render_template("food_search.html", results=results)
+  return render_template("food_search.html", results=results, query=query)
 
 
 @app.route("/")
