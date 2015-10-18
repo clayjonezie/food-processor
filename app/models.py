@@ -3,7 +3,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
 
-from web import db, login_manager
+from . import db
+from . import login_manager
 
 class RawEntry(db.Model):
   __tablename__ = 'raw_entries'
@@ -11,6 +12,7 @@ class RawEntry(db.Model):
   content = db.Column(db.String(1024))
   at = db.Column(db.DateTime)
   user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+  tags = db.relationship('Tag', backref='raw_entry')
 
   def __init__(self, content=None, at=None):
       self.content = content
@@ -24,6 +26,14 @@ class RawEntry(db.Model):
     self.content = tweet.text
     self.user = user
     return self
+
+
+class Tag(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
+  pos = db.Column(db.Integer)
+  food_short = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
+  food_description = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
 
 
 class User(UserMixin, db.Model):
