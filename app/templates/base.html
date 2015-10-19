@@ -20,9 +20,9 @@
         <div class="col-md-4">
         {% if current_user.is_authenticated %}
         <p>{{ current_user.email }}</p>
-        <p><a href="{{ url_for('logout') }}">Log Out</a></p>
+        <p><a href="{{ url_for('main.logout') }}">Log Out</a></p>
         {% else %}
-        <a href="{{ url_for('login') }}">Log In</a>
+        <a href="{{ url_for('main.login') }}">Log In</a>
         {% endif %}
         </div>
       </div>
@@ -40,10 +40,10 @@
     <div class="col-md-3 border">
     {% block menu_left %}
     <ul>
-        <li><a href="{{ url_for('home') }}">home</a></li>
+        <li><a href="{{ url_for('main.home') }}">home</a></li>
         {% if current_user.is_authenticated %}
-        <li><a href="{{ url_for('raw_entries') }}">raw entries</a>
-            <li><a href="{{ url_for('raw_entries_histogram') }}">raw entries histogram</a>
+        <li><a href="{{ url_for('main.raw_entries') }}">raw entries</a>
+            <li><a href="{{ url_for('main.raw_entries_histogram') }}">raw entries histogram</a>
         </li>
         {% endif %}
     </ul>

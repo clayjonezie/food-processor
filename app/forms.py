@@ -1,5 +1,6 @@
 from flask.ext.wtf import Form
 from wtforms.fields import TextField, PasswordField, SubmitField
+from wtforms.widgets import TextArea
 from wtforms.validators import Required, Email, Length
 
 class LoginForm(Form):
@@ -7,7 +8,6 @@ class LoginForm(Form):
     password = PasswordField('Password', validators=[Required()])
     submit = SubmitField('Log In')
 
-class ImportFromTwitterForm(Form):
-  screen_name = TextField('Screen Name', validators=[Required(), Length(1, 255)])
-  submit = SubmitField('Import')
-
+class CreateRawEntryForm(Form):
+  content = TextField('Content', validators=[Required(), Length(1, 1000)], widget=TextArea())
+  submit = SubmitField('Submit')

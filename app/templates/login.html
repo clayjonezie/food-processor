@@ -5,7 +5,7 @@
 
 {% block my_content %}
 <h3>login</h3>
-<form action="{{ url_for('login') }}" method="post">
+<form action="{{ url_for('main.login') }}" method="post">
   {{ wtf.quick_form(form) }}
 </form>
 {% endblock %}

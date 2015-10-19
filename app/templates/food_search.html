@@ -15,7 +15,7 @@ none of ({{ query }})!
 {% for food in results %}
 <tr>
 
-<td><a href="{{ url_for('food', id=food.id) }}">{{ food.long_desc }}</a></td>
+<td><a href="{{ url_for('main.food', id=food.id) }}">{{ food.long_desc }}</a></td>
 
 </tr>
 {% endfor %}

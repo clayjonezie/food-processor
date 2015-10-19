@@ -42,7 +42,7 @@ class User(UserMixin, db.Model):
   email = db.Column(db.String(256), unique=True)
   password_hash = db.Column(db.String(128))
 
-  raw_entries = db.relationship('RawEntry', backref='user')
+  raw_entries = db.relationship('RawEntry', backref='user', order_by='desc(RawEntry.at)')
 
   @property
   def password(self):

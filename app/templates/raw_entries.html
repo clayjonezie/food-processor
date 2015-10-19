@@ -4,22 +4,23 @@
 {% block title %}raw entries{% endblock %}
 
 {% block my_content %}
-<h3>raw entries [<a href="{{ url_for('raw_entries_histogram') }}">histogram</a>]</h3>
+<h3>raw entries [<a href="{{ url_for('main.raw_entries_histogram') }}">histogram</a>]</h3>
 
 <div>
-<h3>Import from Twitter</h3>
-<form action="{{ url_for('import_from_twitter') }}" method="post">
-  {{ wtf.quick_form(import_form) }}
+<h3>New Entry</h3>
+<form method="post">
+  {{ create_form.content() }}
+  {{ create_form.submit() }}
 </form>
 </div>
 
-
-<ul>
+<table class="table">
 {% for entry in current_user.raw_entries %}
-<li>
-<p>{{ moment(entry.at).fromNow() }}: {{ entry.content }}</p>
-</li>
+<tr>
+<td>{{ moment(entry.at).fromNow() }}</td>
+<td>{{ entry.content }}</td>
+</tr>
 {% endfor %}
-</ul>
+</table>
 
 {% endblock %}
