@@ -93,14 +93,27 @@ class FoodDescription(db.Model):
 
   nutrients = db.relationship('NutrientData', backref='food')
 
+  def __repr__(self):
+    return "<FoodDescription: %s>" % self.short_desc
+
 
   def from_ndb(self, ndb_row):
-    self.id, self.food_group_code, self.long_desc, self.short_desc,\
-        self.common_name, self.manufac_name, _, self.refuse_desc, \
-        self.refuse_percent, self.sci_name, _, self.pro_factor, \
-        self.fat_factor, self.cho_factor = ndb_row
-    self.id = int(self.id)
-    self.food_group_code = int(self.food_group_code)
+    self.id = int(ndb_row[0])
+    self.food_group_code = int(ndb_row[1])
+    self.long_desc = ndb_row[2]
+    self.short_desc = ndb_row[3]
+        
+    self.common_name = ndb_row[4]
+    self.manufac_name = ndb_row[5]
+    self.refuse_desc = ndb_row[7]
+        
+    self.refuse_percent = ndb_row[8]
+    self.sci_name = ndb_row[9]
+    self.pro_factor = ndb_row[11]
+        
+    self.fat_factor = ndb_row[12]
+    self.cho_factor = ndb_row[13]
+
     return self
 
 
@@ -119,6 +132,9 @@ class NutrientDefinition(db.Model):
   sr_order = db.Column(db.String(6))
 
   nutrients = db.relationship('NutrientData', backref='nutrient')
+
+  def __repr__(self):
+    return "<NutrientDefinition: %s, %s>" % (self.desc, self.units)
 
 
   def from_ndb(self, ndb_row):
@@ -141,13 +157,17 @@ class NutrientData(db.Model):
   val_min = db.Column(db.Float)
   val_max = db.Column(db.Float)
 
+  def __repr__(self):
+    return '<NutrientData: %s: %s: %s>' % (self.food, self.nutrient, self.nutr_val)
+
   def from_ndb(self, ndb_row):
     self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
       self.std_error, _, _, _, self.add_nutr_mark, _, self.val_min, \
       self.val_max, _, _, _, _, _, _, = ndb_row
+
     self.ndb_no = int(self.ndb_no)
     self.nutr_no = int(self.nutr_no)
-    self.nutr_val = float(self.nutr_val) if self.std_error != '' else None
+    self.nutr_val = float(self.nutr_val) if self.nutr_val != '' else None
     self.num_data_pts = int(self.num_data_pts)
     self.std_error = float(self.std_error) if self.std_error != '' else None
     self.val_min = float(self.val_min) if self.val_min != '' else None

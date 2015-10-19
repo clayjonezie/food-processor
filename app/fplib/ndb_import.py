@@ -4,8 +4,16 @@ from .. import db
 
 def import_nutrient_data():
   import_function = lambda lis : db.session.add(NutrientData().from_ndb(lis))
-  parse_and_call("app/fplib/NUT_DATA.txt", import_function)
+
+  parse_and_call("app/fplib/NUT_DATA_0-99999.txt", import_function)
   db.session.commit()
+  parse_and_call("app/fplib/NUT_DATA_100000-199999.txt", import_function)
+  db.session.commit()
+  parse_and_call("app/fplib/NUT_DATA_200000-399999.txt", import_function)
+  db.session.commit()
+  parse_and_call("app/fplib/NUT_DATA_400000-679044.txt", import_function)
+  db.session.commit()
+
 
 def import_food_description():
   import_function = lambda lis: db.session.add(FoodDescription().from_ndb(lis))
