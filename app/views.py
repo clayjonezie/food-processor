@@ -36,12 +36,16 @@ def home():
 @login_required
 def raw_entries():
   create_form = CreateRawEntryForm()
-  if create_form.validate_on_submit():
-    entry = RawEntry(content=create_form.content.data, 
-        at=datetime.utcnow())
-    entry.user = current_user
-    db.session.add(entry)
-    db.session.commit()
+  if request.method == 'POST':
+    if create_form.validate_on_submit():
+      entry = RawEntry(content=create_form.content.data, 
+          at=datetime.utcnow())
+      entry.user = current_user
+      db.session.add(entry)
+      db.session.commit()
+      flash("added %s" % create_form.content.data)
+    else:
+      flash("didn't validate")
   return render_template('raw_entries.html', create_form=create_form)
 
 

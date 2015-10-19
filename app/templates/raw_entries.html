@@ -9,8 +9,7 @@
 <div>
 <h3>New Entry</h3>
 <form method="post">
-  {{ create_form.content() }}
-  {{ create_form.submit() }}
+  {{ wtf.quick_form(create_form) }}
 </form>
 </div>
 
