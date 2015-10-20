@@ -10,6 +10,7 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.moment import Moment
 from flask_wtf.csrf import CsrfProtect
+from app.fplib import keys
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -19,8 +20,7 @@ moment = Moment()
 login_manager = LoginManager()
 
 def create_app(config):
-  # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/www/foodprocessor/foodprocessor/foodprocessor.db"
-  app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///foodprocessor.db"
+  app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
   app.config["DEBUG"] = True
   app.secret_key = 'dogfood'
 
