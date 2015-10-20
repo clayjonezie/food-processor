@@ -51,15 +51,6 @@ def get_week_hist(user):
   return week
 
 
-class Tag(db.Model):
-  __tablename__ = 'tags'
-  id = db.Column(db.Integer, primary_key=True)
-  raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
-  pos = db.Column(db.Integer)
-  food_short = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
-  food_description = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
-
-
 class User(UserMixin, db.Model):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)
@@ -99,6 +90,8 @@ class FoodShort(db.Model):
   name = db.Column(db.String(255), unique=True)
   common_long_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
 
+  tags = db.relationship('Tag', backref='food_short')
+
 
 class FoodDescription(db.Model):
   __tablename__ = 'food_descriptions'
@@ -114,6 +107,8 @@ class FoodDescription(db.Model):
   pro_factor = db.Column(db.String(10))
   fat_factor = db.Column(db.String(10))
   cho_factor = db.Column(db.String(10))
+
+  tags = db.relationship('Tag', backref='food_description')
 
   nutrients = db.relationship('NutrientData', backref='food')
 
@@ -198,3 +193,14 @@ class NutrientData(db.Model):
     self.val_max = float(self.val_max) if self.val_max != '' else None
 
     return self
+
+
+class Tag(db.Model):
+  __tablename__ = 'tags'
+  id = db.Column(db.Integer, primary_key=True)
+  raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
+  pos = db.Column(db.Integer)
+  text = db.Column(db.String(256))
+  food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
+  food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+
