@@ -31,3 +31,9 @@ def histogram(texts, bad_words):
   sorted_d.reverse()
   return sorted_d
 
+
+def tokenize(text):
+  tokens = re.split(r',|\.', string)
+  tokens = [t.strip() for t in tokens]
+  tokens = [t for t in tokens if t is not '']
+  return tokens

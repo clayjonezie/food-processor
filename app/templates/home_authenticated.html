@@ -1,10 +1,40 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}home{% endblock %}
 
 {% block my_content %}
 {{ super() }}
+<div style="margin-bottom: 20px">
+<h3>New Entry</h3>
+<form method="post">
+<div class="row">
+<div class="col-md-10">
+{{ create_form.content(class_='form-control') }}
+</div>
+<div class="col-md-2">
+{{ create_form.submit(class_='btn btn-default') }}
+</div>
+  {{ create_form.csrf_token() }}
+</div>
+</form>
+</div>
 
+
+<table class="table">
+<tr>
+<th>date</th>
+<th>raw entry</th>
+<th>tagged entry</th>
+</tr>
+{% for entry in week %}
+<tr>
+    <td>{{ moment(entry.at).calendar() }}</td>
+    <td>{{ entry.content }}</td>
+    <td></td>
+</tr>
+{% endfor %}
+</table>
 
 
 {% endblock %}

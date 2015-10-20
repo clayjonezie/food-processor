@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
+from datetime import datetime, timedelta
 
 from . import db
 from . import login_manager
@@ -28,7 +29,30 @@ class RawEntry(db.Model):
     return self
 
 
+def get_week_list(user):
+  now = datetime.utcnow()
+  weekago = now - timedelta(days=6)
+  query = RawEntry.query.filter(RawEntry.at >= weekago.isoformat())
+  query = query.filter(RawEntry.user == user)
+  query = query.order_by('at desc')
+  return query.all()
+
+# returns a map of date to list of entry objects
+def get_week_hist(user):
+  entries = get_week_list(user)
+  dates = [(now.date() - timedelta(days = r)) for r in range(6)]
+  week = dict()
+  for d in dates:
+    week[d] = list()
+      
+  for entry in entries:
+    week[entry.at.date()].append(entry)
+      
+  return week
+
+
 class Tag(db.Model):
+  __tablename__ = 'tags'
   id = db.Column(db.Integer, primary_key=True)
   raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
   pos = db.Column(db.Integer)

@@ -24,19 +24,10 @@ def food_search(query):
   return render_template('food_search.html', results=results, query=query)
 
 
-@main.route('/')
+@main.route('/', methods=['GET', 'POST'])
 def home():
   if current_user.is_authenticated:
-    return render_template('home_authenticated.html')
-  else: 
-    return render_template('home.html')
-
-
-@main.route('/raw_entries', methods=['GET', 'POST'])
-@login_required
-def raw_entries():
-  create_form = CreateRawEntryForm()
-  if request.method == 'POST':
+    create_form = CreateRawEntryForm()
     if create_form.validate_on_submit():
       entry = RawEntry(content=create_form.content.data, 
           at=datetime.utcnow())
@@ -44,8 +35,16 @@ def raw_entries():
       db.session.add(entry)
       db.session.commit()
       flash("added %s" % create_form.content.data)
-    else:
-      flash("didn't validate")
+
+    week = get_week_list(current_user)
+    return render_template('home_authenticated.html', week=week, create_form=create_form)
+  else: 
+    return render_template('home.html')
+
+
+@main.route('/raw_entries', methods=['GET', 'POST'])
+@login_required
+def raw_entries():
   return render_template('raw_entries.html', create_form=create_form)
 
 
