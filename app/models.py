@@ -85,7 +85,7 @@ class FoodDescription(db.Model):
   common_name = db.Column(db.String(100))
   manufac_name = db.Column(db.String(65))
   refuse_desc = db.Column(db.String(135))
-  refuse_percent = db.Column(db.String(0))
+  refuse_percent = db.Column(db.String(10))
   sci_name = db.Column(db.String(65))
   pro_factor = db.Column(db.String(10))
   fat_factor = db.Column(db.String(10))
