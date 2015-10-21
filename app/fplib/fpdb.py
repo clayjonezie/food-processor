@@ -2,8 +2,8 @@ from nltk.corpus import stopwords
 import sys
 import datetime
 import dateutil.parser
-from models import *
-from fplib import twitter
+from ..models import *
+import twitter
 
 def save_tweets(db, user, screen_name):
   tweets = twitter.download_tweets(screen_name)
