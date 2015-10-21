@@ -45,7 +45,7 @@ def home():
 @main.route('/raw_entries', methods=['GET', 'POST'])
 @login_required
 def raw_entries():
-  return render_template('raw_entries.html', create_form=create_form)
+  return render_template('raw_entries.html')
 
 
 @main.route('/raw_entries/historgram')

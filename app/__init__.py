@@ -10,7 +10,7 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.moment import Moment
 from flask_wtf.csrf import CsrfProtect
-from app.fplib import keys
+from fplib import keys
 
 app = Flask(__name__)
 db = SQLAlchemy()
