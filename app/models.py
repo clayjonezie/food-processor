@@ -136,11 +136,6 @@ class FoodDescription(db.Model):
     return self
 
 
-def search_food_descriptions(query):
-  return FoodDescription.query.filter(
-      FoodDescription.long_desc.like("%%%s%%" % query)).all()
-
-
 class NutrientDefinition(db.Model):
   __tablename__ = 'nutrient_definitions'
   nutr_no = db.Column(db.Integer, primary_key=True)
@@ -203,4 +198,7 @@ class Tag(db.Model):
   text = db.Column(db.String(256))
   food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
   food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+  count = db.Column(db.Float)
+  size = db.Column(db.Float)
+  size_units = db.Column(db.String(10))
 

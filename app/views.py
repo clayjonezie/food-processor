@@ -33,6 +33,7 @@ def home():
           at=datetime.utcnow())
       entry.user = current_user
       db.session.add(entry)
+      db.session.add_all(nlp.tag_raw_entry(entry))
       db.session.commit()
       flash("added %s" % create_form.content.data)
 
