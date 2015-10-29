@@ -36,7 +36,7 @@ def histogram(texts, bad_words):
 
 
 def tokenize(text):
-  tokens = re.split(r',|\.', text)
+  tokens = re.split(r',|\.|and', text)
   tokens = [t.strip() for t in tokens]
   tokens = [t for t in tokens if t is not '']
   return tokens

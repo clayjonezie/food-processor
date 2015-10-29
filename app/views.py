@@ -27,20 +27,25 @@ def food_search(query):
 @main.route('/', methods=['GET', 'POST'])
 def home():
   if current_user.is_authenticated:
-    create_form = CreateRawEntryForm()
-    if create_form.validate_on_submit():
-      entry = RawEntry(content=create_form.content.data, 
-          at=datetime.utcnow())
-      entry.user = current_user
-      db.session.add(entry)
-      db.session.add_all(nlp.tag_raw_entry(entry))
-      db.session.commit()
-      flash("added %s" % create_form.content.data)
-
-    week = get_week_list(current_user)
-    return render_template('home_authenticated.html', week=week, create_form=create_form)
+    return authenticated_home()
   else: 
     return render_template('home.html')
+
+
+def authenticated_home():
+  create_form = CreateRawEntryForm()
+  if create_form.validate_on_submit():
+    entry = RawEntry(content=create_form.content.data, 
+        at=datetime.utcnow())
+    entry.user = current_user
+    db.session.add(entry)
+    db.session.add_all(nlp.tag_raw_entry(entry))
+    db.session.commit()
+    flash("added %s" % create_form.content.data)
+    create_form.content.data = ""
+
+  week = get_week_list(current_user)
+  return render_template('home_authenticated.html', week=week, create_form=create_form)
 
 
 @main.route('/raw_entries', methods=['GET', 'POST'])
