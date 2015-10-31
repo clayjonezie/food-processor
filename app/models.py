@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from . import db
 from . import login_manager
+from . import fplib
 
 class RawEntry(db.Model):
   __tablename__ = 'raw_entries'
@@ -37,6 +38,7 @@ def get_week_list(user):
   query = query.order_by('at desc')
   return query.all()
 
+
 # returns a map of date to list of entry objects
 def get_week_hist(user):
   entries = get_week_list(user)
@@ -58,6 +60,7 @@ class User(UserMixin, db.Model):
   password_hash = db.Column(db.String(128))
 
   raw_entries = db.relationship('RawEntry', backref='user', order_by='desc(RawEntry.at)')
+  short_preferences = db.relationship('ShortPreference', backref='user')
 
   @property
   def password(self):
@@ -91,6 +94,30 @@ class FoodShort(db.Model):
   common_long_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
 
   tags = db.relationship('Tag', backref='food_short')
+  short_preferences = db.relationship('ShortPreference', backref='food_short')
+
+  @staticmethod
+  def get_or_create(short):
+    fs = FoodShort.query.filter(FoodShort.name==short).first()
+    if fs is None:
+      fs = FoodShort(name=short, common_long=fplib.nlp.nearby_food_descriptions(short)[0])
+      if fs is not None:
+        db.session.add(fs)
+        db.session.commit()
+    return fs
+
+  @staticmethod
+  def get_food(short, user=None):
+    fs = FoodShort.get_or_create(short)
+    if user is not None:
+      pref = ShortPreference.query.filter(ShortPreference.food_short==fs, 
+          ShortPreference.user==user).first()
+      if pref is None:
+        return fs.common_long
+      else:
+        return pref.food_description
+    else:
+      return fs.common_long
 
 
 class FoodDescription(db.Model):
@@ -108,7 +135,9 @@ class FoodDescription(db.Model):
   fat_factor = db.Column(db.String(10))
   cho_factor = db.Column(db.String(10))
 
+  shorts = db.relationship('FoodShort', backref='common_long')
   tags = db.relationship('Tag', backref='food_description')
+  short_preferences = db.relationship('ShortPreference', backref='food_description')
 
   nutrients = db.relationship('NutrientData', backref='food')
 
@@ -201,4 +230,12 @@ class Tag(db.Model):
   count = db.Column(db.Float)
   size = db.Column(db.Float)
   size_units = db.Column(db.String(10))
+
+
+class ShortPreference(db.Model):
+  __tablename__ = 'short_preferences'
+  id = db.Column(db.Integer, primary_key=True)
+  food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
+  food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 

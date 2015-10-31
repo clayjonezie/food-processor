@@ -1,3 +1,5 @@
+# fpdb.py - Food Processor database operations
+
 from nltk.corpus import stopwords
 import sys
 import datetime

@@ -29,12 +29,15 @@
 </tr>
 {% for entry in week %}
 <tr>
-    <td>{{ moment(entry.at).calendar() }}</td>
+    <td><a href="{{ url_for('main.raw_entry', id=entry.id) }}">{{ moment(entry.at).calendar() }}</a></td>
     <td>{{ entry.content }}</td>
     <td><ul>
         {% for tag in entry.tags %}
             <li>
-              {{ tag.text }}
+              {{ tag.text }} >>> 
+                {% if tag.food_description %}
+                <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
+                {% endif %}
             </li>
         {% endfor %} 
     </ul></td>
@@ -46,6 +49,6 @@
 {% endblock %}
 {% block my_footer %}
 {{ super() }}
-hi
+
 {% endblock %}
 

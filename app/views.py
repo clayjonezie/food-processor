@@ -3,7 +3,6 @@ from flask.ext.login import login_user, logout_user, login_required, current_use
 
 from forms import *
 from models import *
-import fpdb
 from fplib import nlp
 from datetime import datetime
 
@@ -61,6 +60,23 @@ def raw_entries_histogram():
   texts = [re.content for re in current_user.raw_entries]
   return render_template('raw_entries_histogram.html', hist=nlp.histogram(texts, badwords))
 
+
+@main.route('/raw_entries/<int:id>')
+@login_required
+def raw_entry(id):
+  entry = RawEntry.query.get(id)
+  if entry is None:
+    abort(404)
+  elif entry.user != current_user:
+    abort(403)
+  else:
+    return render_template('raw_entry.html', entry=entry)
+
+
+@main.route('/short_preferences')
+@login_required
+def short_preferences():
+  return render_template('short_preferences.html')
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():

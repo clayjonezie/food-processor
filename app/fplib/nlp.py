@@ -5,8 +5,8 @@ from nltk.stem.snowball import SnowballStemmer
 import operator, re
 from string import lower
 from collections import Counter
-from ..models import FoodDescription, Tag, RawEntry, FoodShort
 
+from ..models import FoodDescription, FoodShort, Tag
 
 # INFO EXTRACTION PROCESS (over-trained to my own data)
 #  cut on "\n|\.|,|+"
@@ -65,10 +65,12 @@ def nearby_food_descriptions(query):
   sorted_nearnesses = sorted(nearnesses, key=key)
   return [i[2] for i in sorted_nearnesses]
 
+
 def tag_raw_entry(raw_entry):
   tags = list()
   for token in tokenize(raw_entry.content):
-    tag = Tag(raw_entry=raw_entry, text=token)
+    best_fd = FoodShort.get_food(token)
+    tag = Tag(raw_entry=raw_entry, text=token, food_description=best_fd)
     tags.append(tag)
 
   return tags
