@@ -11,6 +11,7 @@
 <tr>
 <td>{{ pref.food_short.name }}</td>
 <td><a href="{{ url_for('main.food', id=pref.food_description.id) }}">{{ pref.food_description.long_desc }}</a></td>
+<td>(<a href="{{ url_for('main.short_preference', id=pref.id) }}">modify</a>)</td>
 </tr>
 {% endfor %}
 </table>

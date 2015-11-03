@@ -100,10 +100,13 @@ class FoodShort(db.Model):
   def get_or_create(short):
     fs = FoodShort.query.filter(FoodShort.name==short).first()
     if fs is None:
-      fs = FoodShort(name=short, common_long=fplib.nlp.nearby_food_descriptions(short)[0])
-      if fs is not None:
-        db.session.add(fs)
-        db.session.commit()
+      nearby_foods = fplib.nlp.nearby_food_descriptions(short)
+      if len(nearby_foods) > 0:
+        fs = FoodShort(name=short, common_long=nearby_foods[0])
+      else:
+        fs = FoodShort(name=short)
+      db.session.add(fs)
+      db.session.commit()
     return fs
 
   @staticmethod

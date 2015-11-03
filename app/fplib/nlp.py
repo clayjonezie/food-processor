@@ -38,7 +38,7 @@ def histogram(texts, bad_words):
 def tokenize(text):
   tokens = re.split(r',|\.|and', text)
   tokens = [t.strip() for t in tokens]
-  tokens = [t for t in tokens if t is not '']
+  tokens = [t for t in tokens if t is not u'']
   return tokens
 
 
@@ -65,12 +65,24 @@ def nearby_food_descriptions(query):
   sorted_nearnesses = sorted(nearnesses, key=key)
   return [i[2] for i in sorted_nearnesses]
 
+import re, fractions
 
 def tag_raw_entry(raw_entry):
+  stemmer = SnowballStemmer('english')
   tags = list()
   for token in tokenize(raw_entry.content):
+    quantity = 1
+    parts = token.split(" *")
+    parts = [stemmer.stem(part) for part in parts]
+    for p in parts:
+      if re.match(r'[0-9]', p) is not None:
+        try:
+          quantity = float(fractions.Fraction(p)) 
+        except:
+          pass
+
     best_fd = FoodShort.get_food(token)
-    tag = Tag(raw_entry=raw_entry, text=token, food_description=best_fd)
+    tag = Tag(raw_entry=raw_entry, text=token, food_description=best_fd, count=quantity)
     tags.append(tag)
 
   return tags

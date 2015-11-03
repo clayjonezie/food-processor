@@ -19,7 +19,8 @@ def food(id):
 
 @main.route('/food/search/<query>')
 def food_search(query):
-  results = search_food_descriptions(query)
+  results = nlp.nearby_food_descriptions(query) + \
+      nlp.search_food_descriptions(query)
   return render_template('food_search.html', results=results, query=query)
 
 
@@ -77,6 +78,19 @@ def raw_entry(id):
 @login_required
 def short_preferences():
   return render_template('short_preferences.html')
+
+
+@main.route('/short_preferences/<int:id>')
+@login_required
+def short_preference(id):
+  pref = ShortPreference.query.get(id)
+  if pref is None:
+    abort(404)
+  elif pref.user != current_user:
+    abort(403)
+  else:
+    return render_template('short_preference.html', pref=pref)
+
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
