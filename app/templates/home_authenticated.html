@@ -34,7 +34,7 @@
     <td><ul>
         {% for tag in entry.tags %}
             <li>
-                {{ tag.text }} >>> 
+                {{ tag.count }}:{{ tag.text }} >>> 
                 {% if tag.food_description %}
                 <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
                 {% endif %}

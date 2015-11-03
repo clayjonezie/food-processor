@@ -1,7 +1,8 @@
 from nltk.tokenize import RegexpTokenizer
 from nltk.util import ngrams
 from nltk.metrics.distance import edit_distance
-from nltk.stem.snowball import SnowballStemmer
+from nltk.stem import WordNetLemmatizer
+import re, fractions
 import operator, re
 from string import lower
 from collections import Counter
@@ -42,7 +43,7 @@ def tokenize(text):
   return tokens
 
 
-# performs simple existnace search against the 'long_desc'
+# performs simple existance search against the 'long_desc'
 # field of FoodDescription
 def search_food_descriptions(query):
   return FoodDescription.query.filter(
@@ -52,12 +53,12 @@ def search_food_descriptions(query):
 # sorts the search results by edit distance with the query
 # we split on comma and return the best dist of these for better results. 
 def nearby_food_descriptions(query):
-  stemmer = SnowballStemmer('english')
-  query = stemmer.stem(query)
+  lemer = WordNetLemmatizer()
+  query = lemer.lemmatize(query)
   nearnesses = list()
   for food in search_food_descriptions(query):
     food_comp = food.long_desc.split(',')
-    best_nearness = min([edit_distance(stemmer.stem(c.strip()), query) for c in food_comp])
+    best_nearness = min([edit_distance(lemer.lemmatize(c.strip()), query) for c in food_comp])
     total_nearness = edit_distance(food.long_desc, query)
     nearnesses.append((best_nearness, total_nearness, food))
 
@@ -65,24 +66,26 @@ def nearby_food_descriptions(query):
   sorted_nearnesses = sorted(nearnesses, key=key)
   return [i[2] for i in sorted_nearnesses]
 
-import re, fractions
 
 def tag_raw_entry(raw_entry):
-  stemmer = SnowballStemmer('english')
+  lemer = WordNetLemmatizer()
   tags = list()
   for token in tokenize(raw_entry.content):
     quantity = 1
-    parts = token.split(" *")
-    parts = [stemmer.stem(part) for part in parts]
-    for p in parts:
-      if re.match(r'[0-9]', p) is not None:
+    parts = re.split("\s+", token)
+    parts = [lemer.lemmatize(part) for part in parts]
+    for i, part in enumerate(parts):
+      if re.match(r'[0-9]', part) is not None:
         try:
-          quantity = float(fractions.Fraction(p)) 
+          quantity = float(fractions.Fraction(part)) 
+          del parts[i]
         except:
           pass
-
+  
+    token = ' '.join(parts)
     best_fd = FoodShort.get_food(token)
     tag = Tag(raw_entry=raw_entry, text=token, food_description=best_fd, count=quantity)
     tags.append(tag)
 
   return tags
+
