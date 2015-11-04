@@ -8,6 +8,7 @@ from . import db
 from . import login_manager
 from . import fplib
 
+
 class RawEntry(db.Model):
     __tablename__ = 'raw_entries'
     id = db.Column(db.Integer, primary_key=True)
@@ -42,7 +43,7 @@ def get_week_list(user):
 # returns a map of date to list of entry objects
 def get_week_hist(user):
     entries = get_week_list(user)
-    dates = [(now.date() - timedelta(days = r)) for r in range(6)]
+    dates = [(now.date() - timedelta(days=r)) for r in range(6)]
     week = dict()
     for d in dates:
         week[d] = list()
@@ -59,7 +60,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(256), unique=True)
     password_hash = db.Column(db.String(128))
 
-    raw_entries = db.relationship('RawEntry', backref='user', order_by='desc(RawEntry.at)')
+    raw_entries = db.relationship(
+        'RawEntry', backref='user', order_by='desc(RawEntry.at)')
     short_preferences = db.relationship('ShortPreference', backref='user')
 
     @property
@@ -72,6 +74,7 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -91,14 +94,16 @@ class FoodShort(db.Model):
     __tablename__ = 'food_shorts'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True)
-    common_long_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    common_long_id = db.Column(
+        db.Integer, db.ForeignKey('food_descriptions.id'))
 
     tags = db.relationship('Tag', backref='food_short')
-    short_preferences = db.relationship('ShortPreference', backref='food_short')
+    short_preferences = db.relationship(
+        'ShortPreference', backref='food_short')
 
     @staticmethod
     def get_or_create(short):
-        fs = FoodShort.query.filter(FoodShort.name==short).first()
+        fs = FoodShort.query.filter(FoodShort.name == short).first()
         if fs is None:
             nearby_foods = fplib.nlp.nearby_food_descriptions(short)
             if len(nearby_foods) > 0:
@@ -113,8 +118,8 @@ class FoodShort(db.Model):
     def get_food(short, user=None):
         fs = FoodShort.get_or_create(short)
         if user is not None:
-            pref = ShortPreference.query.filter(ShortPreference.food_short==fs, 
-                ShortPreference.user==user).first()
+            pref = ShortPreference.query.filter(ShortPreference.food_short == fs,
+                                                ShortPreference.user == user).first()
             if pref is None:
                 return fs.common_long
             else:
@@ -140,13 +145,13 @@ class FoodDescription(db.Model):
 
     shorts = db.relationship('FoodShort', backref='common_long')
     tags = db.relationship('Tag', backref='food_description')
-    short_preferences = db.relationship('ShortPreference', backref='food_description')
+    short_preferences = db.relationship(
+        'ShortPreference', backref='food_description')
 
     nutrients = db.relationship('NutrientData', backref='food')
 
     def __repr__(self):
         return "<FoodDescription: %s>" % self.short_desc
-
 
     def from_ndb(self, ndb_row):
         self.id = int(ndb_row[0])
@@ -182,7 +187,6 @@ class NutrientDefinition(db.Model):
     def __repr__(self):
         return "<NutrientDefinition: %s, %s>" % (self.desc, self.units)
 
-
     def from_ndb(self, ndb_row):
         self.nutr_no, self.units, self.tagname, self.desc, \
             self.num_dec, self.sr_order = ndb_row
@@ -194,8 +198,8 @@ class NutrientData(db.Model):
     __tablename__ = 'nutrient_data'
     id = db.Column(db.Integer, primary_key=True)
     ndb_no = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
-    nutr_no = db.Column(db.Integer, 
-        db.ForeignKey('nutrient_definitions.nutr_no'))
+    nutr_no = db.Column(db.Integer,
+                        db.ForeignKey('nutrient_definitions.nutr_no'))
     nutr_val = db.Column(db.Float)
     num_data_pts = db.Column(db.Integer)
     std_error = db.Column(db.Float)
@@ -215,7 +219,8 @@ class NutrientData(db.Model):
         self.nutr_no = int(self.nutr_no)
         self.nutr_val = float(self.nutr_val) if self.nutr_val != '' else None
         self.num_data_pts = int(self.num_data_pts)
-        self.std_error = float(self.std_error) if self.std_error != '' else None
+        self.std_error = float(
+            self.std_error) if self.std_error != '' else None
         self.val_min = float(self.val_min) if self.val_min != '' else None
         self.val_max = float(self.val_max) if self.val_max != '' else None
 
@@ -229,7 +234,8 @@ class Tag(db.Model):
     pos = db.Column(db.Integer)
     text = db.Column(db.String(256))
     food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
-    food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    food_description_id = db.Column(
+        db.Integer, db.ForeignKey('food_descriptions.id'))
     count = db.Column(db.Float)
     size = db.Column(db.Float)
     size_units = db.Column(db.String(10))
@@ -242,10 +248,10 @@ class ShortPreference(db.Model):
     __tablename__ = 'short_preferences'
     id = db.Column(db.Integer, primary_key=True)
     food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
-    food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    food_description_id = db.Column(
+        db.Integer, db.ForeignKey('food_descriptions.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
         return '<ShortPreference: %s -> %s>' %  \
             (self.food_short.name, self.food_description.long_desc)
-

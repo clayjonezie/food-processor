@@ -9,6 +9,7 @@ from datetime import datetime
 main = Blueprint('main', 'main',
                  template_folder='templates')
 
+
 @main.route('/food/<int:id>')
 def food(id):
     food = FoodDescription.query.filter_by(id=id).first()
@@ -28,15 +29,15 @@ def food_search(query):
 def home():
     if current_user.is_authenticated:
         return authenticated_home()
-    else: 
+    else:
         return render_template('home.html')
 
 
 def authenticated_home():
     create_form = CreateRawEntryForm()
     if create_form.validate_on_submit():
-        entry = RawEntry(content=create_form.content.data, 
-            at=datetime.utcnow())
+        entry = RawEntry(content=create_form.content.data,
+                         at=datetime.utcnow())
         entry.user = current_user
         db.session.add(entry)
         db.session.add_all(nlp.tag_raw_entry(entry))
@@ -74,10 +75,10 @@ def short_preferences():
         short = form.food_short.data
         fs = FoodShort.get_or_create(short)
         sp = ShortPreference.query.filter(
-            ShortPreference.food_short_id==fs.id, 
-            ShortPreference.user_id==current_user.id).first()
+            ShortPreference.food_short_id == fs.id,
+            ShortPreference.user_id == current_user.id).first()
         if sp is None:
-            sp = ShortPreference(food_short=fs,user=current_user)
+            sp = ShortPreference(food_short=fs, user=current_user)
 
         sp.food_description = FoodDescription.query.get(int(form.food_id.data))
         db.session.add(sp)

@@ -16,6 +16,7 @@ bootstrap = Bootstrap()
 moment = Moment()
 login_manager = LoginManager()
 
+
 def create_app(config):
     """Create, configure, and return a Flask() instance
       :param config: a string describing the environment"""

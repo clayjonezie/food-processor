@@ -16,6 +16,7 @@ bootstrap = Bootstrap()
 moment = Moment()
 login_manager = LoginManager()
 
+
 def create_app(config):
     """Creates, configure, and returns a Flask() instance"""
     app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
