@@ -9,10 +9,10 @@ class NlpTest(unittest.TestCase):
     pass
 
   def testTokenize(self):
-    s1 = "peach, hamburger, 3 apples, 12 oz coffee, hemp/chia/flax cereal."
-    l1 = ["peach", "hamburger", "3 apples", "12 oz coffee", "hemp/chia/flax cereal"]
+    s1 = u'peach, hamburger, 3 apples, 12 oz coffee, hemp/chia/flax cereal.'
+    l1 = [u'peach', u'hamburger', u'3 apples', u'12 oz coffee', u'hemp/chia/flax cereal']
     self.assertEqual(nlp.tokenize(s1), l1)
-    s2 = "peach,,.. hamburger,apples"
-    l2 = ["peach", "hamburger", "apples"]
+    s2 = u'peach,,.. hamburger,apples'
+    l2 = [u'peach', u'hamburger', u'apples']
     self.assertEqual(nlp.tokenize(s1), l1)
 
