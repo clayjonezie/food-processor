@@ -7,6 +7,13 @@ import dateutil.parser
 from ..models import *
 import twitter
 
+def me():
+  return User.query.get(0)
+
+def print_tags():
+  for tag in Tag.query.all():
+    print tag.__repr__()
+
 def save_tweets(db, user, screen_name):
   tweets = twitter.download_tweets(screen_name)
   raw_entries = [RawEntry().from_tweet(tweet, user) for tweet in tweets]

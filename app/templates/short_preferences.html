@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}short preferences{% endblock %}
 
@@ -14,6 +15,11 @@
 <td>(<a href="{{ url_for('main.short_preference', id=pref.id) }}">modify</a>)</td>
 </tr>
 {% endfor %}
+<tr>
 </table>
+
+<form action="{{ url_for('main.short_preferences') }}" method="post">
+  {{ wtf.quick_form(form) }}
+</form>
 
 {% endblock %}

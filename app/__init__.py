@@ -1,13 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, abort
+from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import abort
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager
 from flask.ext.bcrypt import Bcrypt
 from flask.ext.bootstrap import Bootstrap
-from flask import Flask, render_template, redirect, url_for, flash, request, abort
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
-from flask.ext.bcrypt import Bcrypt
-from flask.ext.bootstrap import Bootstrap
+from flask.ext.login import LoginManager, login_user, logout_user
+from flask.ext.login import login_required, current_user
 from flask.ext.moment import Moment
 from flask_wtf.csrf import CsrfProtect
 from fplib import keys
@@ -20,6 +17,8 @@ moment = Moment()
 login_manager = LoginManager()
 
 def create_app(config):
+  """Create, configure, and return a Flask() instance
+    :param config: a string describing the environment"""
   app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
   app.config["DEBUG"] = True
   app.secret_key = 'dogfood'

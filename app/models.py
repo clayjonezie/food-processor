@@ -234,6 +234,9 @@ class Tag(db.Model):
   size = db.Column(db.Float)
   size_units = db.Column(db.String(10))
 
+  def __repr__(self):
+    return '<Tag: %i %f %s>' % (self.id, self.count or 0, self.text)
+
 
 class ShortPreference(db.Model):
   __tablename__ = 'short_preferences'
@@ -241,4 +244,8 @@ class ShortPreference(db.Model):
   food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
   food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
   user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+  def __repr__(self):
+    return '<ShortPreference: %s -> %s>' %  \
+      (self.food_short.name, self.food_description.long_desc)
 

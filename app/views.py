@@ -54,14 +54,6 @@ def raw_entries():
   return render_template('raw_entries.html')
 
 
-@main.route('/raw_entries/historgram')
-@login_required
-def raw_entries_histogram():
-  badwords = [w.word for w in BadWord.query.all()]
-  texts = [re.content for re in current_user.raw_entries]
-  return render_template('raw_entries_histogram.html', hist=nlp.histogram(texts, badwords))
-
-
 @main.route('/raw_entries/<int:id>')
 @login_required
 def raw_entry(id):
@@ -74,10 +66,24 @@ def raw_entry(id):
     return render_template('raw_entry.html', entry=entry)
 
 
-@main.route('/short_preferences')
+@main.route('/short_preferences', methods=['GET', 'POST'])
 @login_required
 def short_preferences():
-  return render_template('short_preferences.html')
+  form = AddShortPreference()
+  if form.validate_on_submit():
+    short = form.food_short.data
+    fs = FoodShort.get_or_create(short)
+    sp = ShortPreference.query.filter(
+        ShortPreference.food_short_id==fs.id, 
+        ShortPreference.user_id==current_user.id).first()
+    if sp is None:
+      sp = ShortPreference(food_short=fs,user=current_user)
+    
+    sp.food_description = FoodDescription.query.get(int(form.food_id.data))
+    db.session.add(sp)
+    db.session.commit()
+
+  return render_template('short_preferences.html', form=form)
 
 
 @main.route('/short_preferences/<int:id>')
