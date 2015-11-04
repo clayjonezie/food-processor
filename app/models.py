@@ -9,243 +9,243 @@ from . import login_manager
 from . import fplib
 
 class RawEntry(db.Model):
-  __tablename__ = 'raw_entries'
-  id = db.Column(db.Integer, primary_key=True)
-  content = db.Column(db.String(1024))
-  at = db.Column(db.DateTime)
-  user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-  tags = db.relationship('Tag', backref='raw_entry')
+    __tablename__ = 'raw_entries'
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(1024))
+    at = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    tags = db.relationship('Tag', backref='raw_entry')
 
-  def __init__(self, content=None, at=None):
-      self.content = content
-      self.at = at
+    def __init__(self, content=None, at=None):
+        self.content = content
+        self.at = at
 
-  def __repr__(self):
-    return '<Entry: %r>' % self.content
+    def __repr__(self):
+        return '<Entry: %r>' % self.content
 
-  def from_tweet(self, tweet, user):
-    self.at = tweet.created_at
-    self.content = tweet.text
-    self.user = user
-    return self
+    def from_tweet(self, tweet, user):
+        self.at = tweet.created_at
+        self.content = tweet.text
+        self.user = user
+        return self
 
 
 def get_week_list(user):
-  now = datetime.utcnow()
-  weekago = now - timedelta(days=6)
-  query = RawEntry.query.filter(RawEntry.at >= weekago.isoformat())
-  query = query.filter(RawEntry.user == user)
-  query = query.order_by('at desc')
-  return query.all()
+    now = datetime.utcnow()
+    weekago = now - timedelta(days=6)
+    query = RawEntry.query.filter(RawEntry.at >= weekago.isoformat())
+    query = query.filter(RawEntry.user == user)
+    query = query.order_by('at desc')
+    return query.all()
 
 
 # returns a map of date to list of entry objects
 def get_week_hist(user):
-  entries = get_week_list(user)
-  dates = [(now.date() - timedelta(days = r)) for r in range(6)]
-  week = dict()
-  for d in dates:
-    week[d] = list()
-      
-  for entry in entries:
-    week[entry.at.date()].append(entry)
-      
-  return week
+    entries = get_week_list(user)
+    dates = [(now.date() - timedelta(days = r)) for r in range(6)]
+    week = dict()
+    for d in dates:
+        week[d] = list()
+
+    for entry in entries:
+        week[entry.at.date()].append(entry)
+
+    return week
 
 
 class User(UserMixin, db.Model):
-  __tablename__ = 'users'
-  id = db.Column(db.Integer, primary_key=True)
-  email = db.Column(db.String(256), unique=True)
-  password_hash = db.Column(db.String(128))
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(256), unique=True)
+    password_hash = db.Column(db.String(128))
 
-  raw_entries = db.relationship('RawEntry', backref='user', order_by='desc(RawEntry.at)')
-  short_preferences = db.relationship('ShortPreference', backref='user')
+    raw_entries = db.relationship('RawEntry', backref='user', order_by='desc(RawEntry.at)')
+    short_preferences = db.relationship('ShortPreference', backref='user')
 
-  @property
-  def password(self):
-    raise AttributeError("Password is not stored")
+    @property
+    def password(self):
+        raise AttributeError("Password is not stored")
 
-  @password.setter
-  def password(self, password):
-    self.password_hash = generate_password_hash(password)
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
 
-  def verify_password(self, password):
-    return check_password_hash(self.password_hash, password)
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 @login_manager.user_loader
 def load_user(user_id):
-  return User.query.get(int(user_id))
+    return User.query.get(int(user_id))
 
 
 class BadWord(db.Model):
-  __tablename__ = 'bad_words'
-  id = db.Column(db.Integer, primary_key=True)
-  word = db.Column(db.String(255), unique=True)
+    __tablename__ = 'bad_words'
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(255), unique=True)
 
-  def __repr__(self):
-    return '<BadWord: %r>' % self.word
+    def __repr__(self):
+        return '<BadWord: %r>' % self.word
 
 
 class FoodShort(db.Model):
-  __tablename__ = 'food_shorts'
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(255), unique=True)
-  common_long_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    __tablename__ = 'food_shorts'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=True)
+    common_long_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
 
-  tags = db.relationship('Tag', backref='food_short')
-  short_preferences = db.relationship('ShortPreference', backref='food_short')
+    tags = db.relationship('Tag', backref='food_short')
+    short_preferences = db.relationship('ShortPreference', backref='food_short')
 
-  @staticmethod
-  def get_or_create(short):
-    fs = FoodShort.query.filter(FoodShort.name==short).first()
-    if fs is None:
-      nearby_foods = fplib.nlp.nearby_food_descriptions(short)
-      if len(nearby_foods) > 0:
-        fs = FoodShort(name=short, common_long=nearby_foods[0])
-      else:
-        fs = FoodShort(name=short)
-      db.session.add(fs)
-      db.session.commit()
-    return fs
+    @staticmethod
+    def get_or_create(short):
+        fs = FoodShort.query.filter(FoodShort.name==short).first()
+        if fs is None:
+            nearby_foods = fplib.nlp.nearby_food_descriptions(short)
+            if len(nearby_foods) > 0:
+                fs = FoodShort(name=short, common_long=nearby_foods[0])
+            else:
+                fs = FoodShort(name=short)
+            db.session.add(fs)
+            db.session.commit()
+        return fs
 
-  @staticmethod
-  def get_food(short, user=None):
-    fs = FoodShort.get_or_create(short)
-    if user is not None:
-      pref = ShortPreference.query.filter(ShortPreference.food_short==fs, 
-          ShortPreference.user==user).first()
-      if pref is None:
-        return fs.common_long
-      else:
-        return pref.food_description
-    else:
-      return fs.common_long
+    @staticmethod
+    def get_food(short, user=None):
+        fs = FoodShort.get_or_create(short)
+        if user is not None:
+            pref = ShortPreference.query.filter(ShortPreference.food_short==fs, 
+                ShortPreference.user==user).first()
+            if pref is None:
+                return fs.common_long
+            else:
+                return pref.food_description
+        else:
+            return fs.common_long
 
 
 class FoodDescription(db.Model):
-  __tablename__ = 'food_descriptions'
-  id = db.Column(db.Integer, primary_key=True)
-  food_group_code = db.Column(db.Integer)
-  long_desc = db.Column(db.String(200))
-  short_desc = db.Column(db.String(200))
-  common_name = db.Column(db.String(100))
-  manufac_name = db.Column(db.String(65))
-  refuse_desc = db.Column(db.String(135))
-  refuse_percent = db.Column(db.String(10))
-  sci_name = db.Column(db.String(65))
-  pro_factor = db.Column(db.String(10))
-  fat_factor = db.Column(db.String(10))
-  cho_factor = db.Column(db.String(10))
+    __tablename__ = 'food_descriptions'
+    id = db.Column(db.Integer, primary_key=True)
+    food_group_code = db.Column(db.Integer)
+    long_desc = db.Column(db.String(200))
+    short_desc = db.Column(db.String(200))
+    common_name = db.Column(db.String(100))
+    manufac_name = db.Column(db.String(65))
+    refuse_desc = db.Column(db.String(135))
+    refuse_percent = db.Column(db.String(10))
+    sci_name = db.Column(db.String(65))
+    pro_factor = db.Column(db.String(10))
+    fat_factor = db.Column(db.String(10))
+    cho_factor = db.Column(db.String(10))
 
-  shorts = db.relationship('FoodShort', backref='common_long')
-  tags = db.relationship('Tag', backref='food_description')
-  short_preferences = db.relationship('ShortPreference', backref='food_description')
+    shorts = db.relationship('FoodShort', backref='common_long')
+    tags = db.relationship('Tag', backref='food_description')
+    short_preferences = db.relationship('ShortPreference', backref='food_description')
 
-  nutrients = db.relationship('NutrientData', backref='food')
+    nutrients = db.relationship('NutrientData', backref='food')
 
-  def __repr__(self):
-    return "<FoodDescription: %s>" % self.short_desc
+    def __repr__(self):
+        return "<FoodDescription: %s>" % self.short_desc
 
 
-  def from_ndb(self, ndb_row):
-    self.id = int(ndb_row[0])
-    self.food_group_code = int(ndb_row[1])
-    self.long_desc = ndb_row[2]
-    self.short_desc = ndb_row[3]
-        
-    self.common_name = ndb_row[4]
-    self.manufac_name = ndb_row[5]
-    self.refuse_desc = ndb_row[7]
-        
-    self.refuse_percent = ndb_row[8]
-    self.sci_name = ndb_row[9]
-    self.pro_factor = ndb_row[11]
-        
-    self.fat_factor = ndb_row[12]
-    self.cho_factor = ndb_row[13]
+    def from_ndb(self, ndb_row):
+        self.id = int(ndb_row[0])
+        self.food_group_code = int(ndb_row[1])
+        self.long_desc = ndb_row[2]
+        self.short_desc = ndb_row[3]
 
-    return self
+        self.common_name = ndb_row[4]
+        self.manufac_name = ndb_row[5]
+        self.refuse_desc = ndb_row[7]
+
+        self.refuse_percent = ndb_row[8]
+        self.sci_name = ndb_row[9]
+        self.pro_factor = ndb_row[11]
+
+        self.fat_factor = ndb_row[12]
+        self.cho_factor = ndb_row[13]
+
+        return self
 
 
 class NutrientDefinition(db.Model):
-  __tablename__ = 'nutrient_definitions'
-  nutr_no = db.Column(db.Integer, primary_key=True)
-  units = db.Column(db.String(7))
-  tagname = db.Column(db.String(20))
-  desc = db.Column(db.String(60))
-  num_dec = db.Column(db.String(1))
-  sr_order = db.Column(db.String(6))
+    __tablename__ = 'nutrient_definitions'
+    nutr_no = db.Column(db.Integer, primary_key=True)
+    units = db.Column(db.String(7))
+    tagname = db.Column(db.String(20))
+    desc = db.Column(db.String(60))
+    num_dec = db.Column(db.String(1))
+    sr_order = db.Column(db.String(6))
 
-  nutrients = db.relationship('NutrientData', backref='nutrient')
+    nutrients = db.relationship('NutrientData', backref='nutrient')
 
-  def __repr__(self):
-    return "<NutrientDefinition: %s, %s>" % (self.desc, self.units)
+    def __repr__(self):
+        return "<NutrientDefinition: %s, %s>" % (self.desc, self.units)
 
 
-  def from_ndb(self, ndb_row):
-    self.nutr_no, self.units, self.tagname, self.desc, \
-      self.num_dec, self.sr_order = ndb_row
-    self.nutr_no = int(self.nutr_no)
-    return self
+    def from_ndb(self, ndb_row):
+        self.nutr_no, self.units, self.tagname, self.desc, \
+            self.num_dec, self.sr_order = ndb_row
+        self.nutr_no = int(self.nutr_no)
+        return self
 
 
 class NutrientData(db.Model):
-  __tablename__ = 'nutrient_data'
-  id = db.Column(db.Integer, primary_key=True)
-  ndb_no = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
-  nutr_no = db.Column(db.Integer, 
-      db.ForeignKey('nutrient_definitions.nutr_no'))
-  nutr_val = db.Column(db.Float)
-  num_data_pts = db.Column(db.Integer)
-  std_error = db.Column(db.Float)
-  add_nutr_mark = db.Column(db.String(2))
-  val_min = db.Column(db.Float)
-  val_max = db.Column(db.Float)
+    __tablename__ = 'nutrient_data'
+    id = db.Column(db.Integer, primary_key=True)
+    ndb_no = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    nutr_no = db.Column(db.Integer, 
+        db.ForeignKey('nutrient_definitions.nutr_no'))
+    nutr_val = db.Column(db.Float)
+    num_data_pts = db.Column(db.Integer)
+    std_error = db.Column(db.Float)
+    add_nutr_mark = db.Column(db.String(2))
+    val_min = db.Column(db.Float)
+    val_max = db.Column(db.Float)
 
-  def __repr__(self):
-    return '<NutrientData: %s: %s: %s>' % (self.food, self.nutrient, self.nutr_val)
+    def __repr__(self):
+        return '<NutrientData: %s: %s: %s>' % (self.food, self.nutrient, self.nutr_val)
 
-  def from_ndb(self, ndb_row):
-    self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
-      self.std_error, _, _, _, self.add_nutr_mark, _, self.val_min, \
-      self.val_max, _, _, _, _, _, _, = ndb_row
+    def from_ndb(self, ndb_row):
+        self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
+            self.std_error, _, _, _, self.add_nutr_mark, _, self.val_min, \
+            self.val_max, _, _, _, _, _, _, = ndb_row
 
-    self.ndb_no = int(self.ndb_no)
-    self.nutr_no = int(self.nutr_no)
-    self.nutr_val = float(self.nutr_val) if self.nutr_val != '' else None
-    self.num_data_pts = int(self.num_data_pts)
-    self.std_error = float(self.std_error) if self.std_error != '' else None
-    self.val_min = float(self.val_min) if self.val_min != '' else None
-    self.val_max = float(self.val_max) if self.val_max != '' else None
+        self.ndb_no = int(self.ndb_no)
+        self.nutr_no = int(self.nutr_no)
+        self.nutr_val = float(self.nutr_val) if self.nutr_val != '' else None
+        self.num_data_pts = int(self.num_data_pts)
+        self.std_error = float(self.std_error) if self.std_error != '' else None
+        self.val_min = float(self.val_min) if self.val_min != '' else None
+        self.val_max = float(self.val_max) if self.val_max != '' else None
 
-    return self
+        return self
 
 
 class Tag(db.Model):
-  __tablename__ = 'tags'
-  id = db.Column(db.Integer, primary_key=True)
-  raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
-  pos = db.Column(db.Integer)
-  text = db.Column(db.String(256))
-  food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
-  food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
-  count = db.Column(db.Float)
-  size = db.Column(db.Float)
-  size_units = db.Column(db.String(10))
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True)
+    raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
+    pos = db.Column(db.Integer)
+    text = db.Column(db.String(256))
+    food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
+    food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    count = db.Column(db.Float)
+    size = db.Column(db.Float)
+    size_units = db.Column(db.String(10))
 
-  def __repr__(self):
-    return '<Tag: %i %f %s>' % (self.id, self.count or 0, self.text)
+    def __repr__(self):
+        return '<Tag: %i %f %s>' % (self.id, self.count or 0, self.text)
 
 
 class ShortPreference(db.Model):
-  __tablename__ = 'short_preferences'
-  id = db.Column(db.Integer, primary_key=True)
-  food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
-  food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
-  user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    __tablename__ = 'short_preferences'
+    id = db.Column(db.Integer, primary_key=True)
+    food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
+    food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-  def __repr__(self):
-    return '<ShortPreference: %s -> %s>' %  \
-      (self.food_short.name, self.food_description.long_desc)
+    def __repr__(self):
+        return '<ShortPreference: %s -> %s>' %  \
+            (self.food_short.name, self.food_description.long_desc)
 

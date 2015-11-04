@@ -9,11 +9,11 @@ class LoginForm(Form):
     submit = SubmitField('Log In')
 
 class CreateRawEntryForm(Form):
-  content = TextField('Content', validators=[Required(), Length(1, 1000)], widget=TextArea())
-  submit = SubmitField('Submit')
+    content = TextField('Content', validators=[Required(), Length(1, 1000)], widget=TextArea())
+    submit = SubmitField('Submit')
 
 class AddShortPreference(Form):
-  food_short = TextField('Short', validators=[Required(), Length(1, 255)])
-  food_id = TextField('Food Desc id', validators=[Required()])
-  submit = SubmitField('Submit')
+    food_short = TextField('Short', validators=[Required(), Length(1, 255)])
+    food_id = TextField('Food Desc id', validators=[Required()])
+    submit = SubmitField('Submit')
 

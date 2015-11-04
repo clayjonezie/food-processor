@@ -6,14 +6,14 @@ import keys
 import tweepy
 
 def download_tweets(screen_name):
-  auth = tweepy.OAuthHandler(keys.twitter_consumer_key, 
-                             keys.twitter_consumer_secret)
-  auth.set_access_token(keys.twitter_access_token, 
-                        keys.twitter_access_token_secret)
+    auth = tweepy.OAuthHandler(keys.twitter_consumer_key, 
+                               keys.twitter_consumer_secret)
+    auth.set_access_token(keys.twitter_access_token, 
+                          keys.twitter_access_token_secret)
 
-  api = tweepy.API(auth)
+    api = tweepy.API(auth)
 
-  # # todo count=1000 probably will not actually work
-  tweets = api.user_timeline(screen_name=screen_name, count=1000)
-  return tweets
+    # # todo count=1000 probably will not actually work
+    tweets = api.user_timeline(screen_name=screen_name, count=1000)
+    return tweets
 

@@ -17,20 +17,20 @@ moment = Moment()
 login_manager = LoginManager()
 
 def create_app(config):
-  """Create, configure, and return a Flask() instance
-    :param config: a string describing the environment"""
-  app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
-  app.config["DEBUG"] = True
-  app.secret_key = 'dogfood'
+    """Create, configure, and return a Flask() instance
+      :param config: a string describing the environment"""
+    app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
+    app.config["DEBUG"] = True
+    app.secret_key = 'dogfood'
 
-  db.init_app(app)
-  my_bcrypt.init_app(app)
-  bootstrap.init_app(app)
-  moment.init_app(app)
-  login_manager.session_protection = 'strong'
-  login_manager.login_view = 'login'
-  login_manager.init_app(app)
+    db.init_app(app)
+    my_bcrypt.init_app(app)
+    bootstrap.init_app(app)
+    moment.init_app(app)
+    login_manager.session_protection = 'strong'
+    login_manager.login_view = 'login'
+    login_manager.init_app(app)
 
-  from views import main
-  app.register_blueprint(main)
-  return app
+    from views import main
+    app.register_blueprint(main)
+    return app
