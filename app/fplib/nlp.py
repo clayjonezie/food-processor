@@ -36,11 +36,10 @@ def search_food_descriptions(query):
         FoodDescription.long_desc.like("%%%s%%" % query)).all()
 
 
-# sorts the search results by edit distance with the query
-# we split on comma and return the best dist of these for better results.
 def nearby_food_descriptions(query):
     """
-
+    Performs a ranking algorithm based on the 'closest food' to this
+    query. See implementation.
     :param query: the string to be passed to search_food_descriptions
     :return:
     """

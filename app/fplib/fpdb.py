@@ -1,5 +1,3 @@
-# fpdb.py - Food Processor database operations
-
 from nltk.corpus import stopwords
 import sys
 import datetime
@@ -9,10 +7,12 @@ import twitter
 
 
 def me():
+    """ returns the first user (c@c.me) """
     return User.query.get(0)
 
 
 def print_tags():
+    """ prints every tag in the system """
     for tag in Tag.query.all():
         print tag.__repr__()
 

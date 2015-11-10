@@ -8,6 +8,7 @@ from flask.ext.login import login_required, current_user
 from flask.ext.moment import Moment
 from flask_wtf.csrf import CsrfProtect
 from fplib import keys
+from views import main
 
 app = Flask(__name__)
 db = SQLAlchemy()
@@ -18,7 +19,9 @@ login_manager = LoginManager()
 
 
 def create_app(config):
-    """Creates, configure, and returns a Flask() instance"""
+    """Returns a Flask() instance
+    :param config: a string specifying the configuration environment
+    """
     app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
     app.config["DEBUG"] = True
     app.secret_key = 'dogfood'
@@ -31,6 +34,5 @@ def create_app(config):
     login_manager.login_view = 'login'
     login_manager.init_app(app)
 
-    from views import main
     app.register_blueprint(main)
     return app

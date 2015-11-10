@@ -1,5 +1,6 @@
 from __future__ import print_function
-from ..models import NutrientData, NutrientDefinition, FoodDescription
+from unidecode import unidecode
+from ..models import NutrientData, NutrientDefinition, FoodDescription, MeasurementWeight
 from ..models import User
 from .. import db
 
@@ -31,13 +32,23 @@ def import_nutrient_definition():
     db.session.commit()
 
 
+def import_measurement_weights():
+    def import_function(lis):
+        db.session.add(MeasurementWeight().from_ndb(lis))
+    parse_and_call("app/fplib/WEIGHT.txt", import_function)
+    db.session.commit()
+
+
+
 def parse_and_call(filename, func):
     i = 0
     for line in open(filename):
         i = i + 1
         vals = line.split('^')
         vals = map(lambda s: s.replace('~', ''), vals)
-        vals = map(lambda s: s.replace('\xB5', 'u').decode('utf-8'), vals)
+        vals = map(lambda s: s.replace('\xB5', 'u'), vals)
+        vals = map(lambda s: unidecode(s), vals)
+        vals = map(lambda s: s.strip(), vals)
         func(vals)
 
     print("read %s rows" % i)

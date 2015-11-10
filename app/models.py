@@ -147,6 +147,7 @@ class FoodDescription(db.Model):
     tags = db.relationship('Tag', backref='food_description')
     short_preferences = db.relationship(
         'ShortPreference', backref='food_description')
+    measurements = db.relationship('MeasurementWeight', backref='food_description')
 
     nutrients = db.relationship('NutrientData', backref='food')
 
@@ -255,3 +256,35 @@ class ShortPreference(db.Model):
     def __repr__(self):
         return '<ShortPreference: %s -> %s>' %  \
             (self.food_short.name, self.food_description.long_desc)
+
+class MeasurementWeight(db.Model):
+    """ this class helps go between common weights and the 100g values
+    in the nutrient database"""
+    __tablename__ = 'measurement_weights'
+    id = db.Column(db.Integer, primary_key=True)
+    ndb_no = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    seq = db.Column(db.Integer)
+    amount = db.Column(db.Float)
+    description = db.Column(db.String(255))
+    gram_weight = db.Column(db.Float)
+    num_data_points = db.Column(db.Integer)
+    std_dev = db.Column(db.Float)
+
+    def __repr__(self):
+        return '<MeasurementWeight: %s weighs %dg>' % \
+                (self.description, self.gram_weight)
+
+
+    
+    def from_ndb(self, ndb_row):
+        [u'03089', u'2', u'1', u'jar', u'113', u'', u'\r\n']
+        self.ndb_no = int(ndb_row[0])
+        self.seq = int(ndb_row[1]) if ndb_row[1] != '' else None
+        self.amount = float(ndb_row[2]) if ndb_row[2] != '' else None
+        self.description = ndb_row[3]
+        self.gram_weight = float(ndb_row[4]) if ndb_row[4] != '' else None
+        self.num_data_points = int(ndb_row[5]) if ndb_row[5] != '' else None
+        self.std_dev = float(ndb_row[6]) if ndb_row[6] != '' else None
+
+        return self
+
