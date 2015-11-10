@@ -80,3 +80,8 @@ def tag_raw_entry(raw_entry):
         tags.append(tag)
 
     return tags
+
+
+def best_unit(food_description):
+    """ Decides which unit is most likely to represent the consumption """
+    return 'asdf'
