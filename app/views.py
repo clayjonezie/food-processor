@@ -45,7 +45,7 @@ def authenticated_home():
         flash("added %s" % create_form.content.data)
         create_form.content.data = ""
 
-    week = get_week_list(current_user)
+    week = get_week_hist(current_user)
     return render_template('home_authenticated.html', week=week, create_form=create_form)
 
 

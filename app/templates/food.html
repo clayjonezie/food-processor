@@ -8,14 +8,11 @@
 {{ food.id }}
 {{ food.long_desc }}
 
-<table>
+<table class="table">
 {% for nutrient in food.nutrients %}
 <tr>
-
-<td>{{ nutrient.nutr_val }}</td>
-<td>{{ nutrient.nutrient.units }}</td>
+<td>{{ nutrient.nutr_val }}{{ nutrient.nutrient.units }}</td>
 <td>{{ nutrient.nutrient.desc }}</td>
-
 </tr>
 {% endfor %}
 </table>

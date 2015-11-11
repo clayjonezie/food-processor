@@ -2,12 +2,10 @@ from nltk.tokenize import RegexpTokenizer
 from nltk.util import ngrams
 from nltk.metrics.distance import edit_distance
 from nltk.stem import WordNetLemmatizer
-import re
-import fractions
-import operator
-import re
+import re, fractions, operator
 from string import lower
 from collections import Counter
+from fuzzywuzzy import fuzz
 
 from ..models import FoodDescription, FoodShort, Tag
 
@@ -43,19 +41,20 @@ def nearby_food_descriptions(query):
     :param query: the string to be passed to search_food_descriptions
     :return:
     """
-    lemer = WordNetLemmatizer()
-    query = lemer.lemmatize(query)
     nearnesses = list()
+    query = query.strip()
     for food in search_food_descriptions(query):
-        food_parts = food.long_desc.split(',')
-        best_nearness = min(
-            [edit_distance(lemer.lemmatize(c.strip()), query) for c in food_parts])
-        total_nearness = edit_distance(food.long_desc, query)
-        nearnesses.append((best_nearness, total_nearness, food))
+        desc_parts = [part.strip() for part in food.long_desc.split(",") if part is not ""]
+        weight = 100
+        score = 0
+        # weigh the earlier matches more
+        for part in desc_parts:
+            score += weight * (fuzz.ratio(query, part) - 50)
 
-    key = lambda i: (i[0], i[1])
-    sorted_nearnesses = sorted(nearnesses, key=key)
-    return map(operator.itemgetter(2), sorted_nearnesses)
+        nearnesses.append((score, food))
+
+    sorted_nearnesses = sorted(nearnesses, reverse=True)
+    return map(lambda i: i[1], sorted_nearnesses)
 
 
 def tag_raw_entry(raw_entry):
@@ -83,5 +82,5 @@ def tag_raw_entry(raw_entry):
 
 
 def best_unit(food_description):
-    """ Decides which unit is most likely to represent the consumption """
+    """ returns which unit is most likely to represent the consumption """
     return 'asdf'

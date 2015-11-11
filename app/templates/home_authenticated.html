@@ -22,26 +22,31 @@
 
 
 <table class="table">
-<tr>
-<th>date</th>
-<th>raw entry</th>
-<th>tagged entry</th>
-</tr>
-{% for entry in week %}
-<tr>
-    <td><a href="{{ url_for('main.raw_entry', id=entry.id) }}">{{ moment(entry.at).calendar() }}</a></td>
-    <td>{{ entry.content }}</td>
-    <td><ul>
-        {% for tag in entry.tags %}
-            <li>
-                {{ tag.count }}:{{ tag.text }} >>> 
-                {% if tag.food_description %}
-                <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
-                {% endif %}
-            </li>
-        {% endfor %} 
-    </ul></td>
-</tr>
+{% for day in week %}
+    <tr><td colspan="1000000"><h4>{{ day[0].strftime("%A, %B %d") }}</h4></td></tr>
+    {% if day[1]|length > 0 %}  
+        <tr><th>date</th><th>raw entry</th><th>tagged entry</th></tr>
+        {% for entry in day[1] %}
+        <tr>
+            <td><a href="{{ url_for('main.raw_entry', id=entry.id) }}">{{ moment(entry.at).calendar() }}</a></td>
+            <td>{{ entry.content }}</td>
+            <td><ul>
+                {% for tag in entry.tags %}
+                    <li>
+                        {{ tag.count }}:{{ tag.text }} >>> 
+                        {% if tag.food_description %}
+                        <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
+                        {% else %}
+                        Unknown
+                        {% endif %}
+                    </li>
+                {% endfor %} 
+            </ul></td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr><td colspan="1000000">Nothing!</td></tr>
+    {% endif %}
 {% endfor %}
 </table>
 

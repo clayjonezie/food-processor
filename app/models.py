@@ -40,8 +40,11 @@ def get_week_list(user):
     return query.all()
 
 
-# returns a map of date to list of entry objects
+# histogram of previous week of entries
+# returns is a list of tuples 
+# [(date, [entry1, entry2]), (date2,[...])]
 def get_week_hist(user):
+    now = datetime.utcnow()
     entries = get_week_list(user)
     dates = [(now.date() - timedelta(days=r)) for r in range(6)]
     week = dict()
@@ -51,7 +54,7 @@ def get_week_hist(user):
     for entry in entries:
         week[entry.at.date()].append(entry)
 
-    return week
+    return [(d, week.get(d)) for d in sorted(week.keys(), reverse=True)]
 
 
 class User(UserMixin, db.Model):
@@ -145,14 +148,36 @@ class FoodDescription(db.Model):
 
     shorts = db.relationship('FoodShort', backref='common_long')
     tags = db.relationship('Tag', backref='food_description')
-    short_preferences = db.relationship(
-        'ShortPreference', backref='food_description')
+    short_preferences = db.relationship('ShortPreference', backref='food_description')
     measurements = db.relationship('MeasurementWeight', backref='food_description')
-
-    nutrients = db.relationship('NutrientData', backref='food')
+    nutrients = db.relationship('NutrientData', backref='food_description')
 
     def __repr__(self):
-        return "<FoodDescription: %s>" % self.short_desc
+        return "<FoodDescription: %s>" % self.long_desc
+
+    
+    def nutrient_by_name(self, nutrient):
+        """ :param nutrient: string contained in the nutrient descriptin """
+        ND = NutrientDefinition
+        nut_def = ND.query.filter(ND.desc.contains(nutrient)).first()
+        if nut_def is None:
+            warn("NO nutrient with contains %s" % nutrient)
+        nut_data = NutrientData.query.filter(NutrientData.nutr_no==nut_def.nutr_no)
+        return nut_data
+
+    def nutrients_hist(self, measurement_weight=None, count=0):
+        """ 
+        :param: measurement_weight a MeasurementWeight object to use to 
+        calculate the nutrient values, if None, the 100g values are returned
+        :param: count the number of nutrients to return (sorted by relevance)
+        """
+
+        nut_names = ["Carbohydrate", "Protien", ""]
+
+        if measurement_weight == None:
+            return None
+            
+
 
     def from_ndb(self, ndb_row):
         self.id = int(ndb_row[0])
@@ -199,8 +224,7 @@ class NutrientData(db.Model):
     __tablename__ = 'nutrient_data'
     id = db.Column(db.Integer, primary_key=True)
     ndb_no = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
-    nutr_no = db.Column(db.Integer,
-                        db.ForeignKey('nutrient_definitions.nutr_no'))
+    nutr_no = db.Column(db.Integer, db.ForeignKey('nutrient_definitions.nutr_no'))
     nutr_val = db.Column(db.Float)
     num_data_pts = db.Column(db.Integer)
     std_error = db.Column(db.Float)
@@ -210,6 +234,10 @@ class NutrientData(db.Model):
 
     def __repr__(self):
         return '<NutrientData: %s: %s: %s>' % (self.food, self.nutrient, self.nutr_val)
+
+
+    def html(self):
+        return '<tr><td></td><td></td></tr>'
 
     def from_ndb(self, ndb_row):
         self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
@@ -235,11 +263,11 @@ class Tag(db.Model):
     pos = db.Column(db.Integer)
     text = db.Column(db.String(256))
     food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
-    food_description_id = db.Column(
-        db.Integer, db.ForeignKey('food_descriptions.id'))
+    food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
     count = db.Column(db.Float)
     size = db.Column(db.Float)
     size_units = db.Column(db.String(10))
+    measurement_weight_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
 
     def __repr__(self):
         return '<Tag: %i %f %s>' % (self.id, self.count or 0, self.text)
@@ -256,6 +284,7 @@ class ShortPreference(db.Model):
     def __repr__(self):
         return '<ShortPreference: %s -> %s>' %  \
             (self.food_short.name, self.food_description.long_desc)
+
 
 class MeasurementWeight(db.Model):
     """ this class helps go between common weights and the 100g values
@@ -277,7 +306,6 @@ class MeasurementWeight(db.Model):
 
     
     def from_ndb(self, ndb_row):
-        [u'03089', u'2', u'1', u'jar', u'113', u'', u'\r\n']
         self.ndb_no = int(ndb_row[0])
         self.seq = int(ndb_row[1]) if ndb_row[1] != '' else None
         self.amount = float(ndb_row[2]) if ndb_row[2] != '' else None
