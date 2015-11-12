@@ -156,24 +156,27 @@ class FoodDescription(db.Model):
         return "<FoodDescription: %s>" % self.long_desc
 
     
-    def nutrient_by_name(self, nutrient):
-        """ :param nutrient: string contained in the nutrient descriptin """
-        ND = NutrientDefinition
-        nut_def = ND.query.filter(ND.desc.contains(nutrient)).first()
-        if nut_def is None:
-            warn("NO nutrient with contains %s" % nutrient)
-        nut_data = NutrientData.query.filter(NutrientData.nutr_no==nut_def.nutr_no)
-        return nut_data
+    def get_nutrient_by_group(self, group):
+        """ 
+        :param group: string contained in the nutrient descriptin 
+        :return: all nutrients in this group or lower 
+        """
+        NDATA = NutrientData
+        NDEF = NutrientDefinition
+        pairs = db.session.query(NDEF, NDATA).\
+                filter(NDEF.group==group).\
+                filter(NDATA.nutr_no==NDEF.nutr_no).\
+                filter(NDATA.ndb_no==self.id).all()
+        return map(lambda i: i[1], pairs)
 
-    def nutrients_hist(self, measurement_weight=None, count=0):
+
+    def get_nutrient_group(self, measurement_weight=None, group=0):
         """ 
         :param: measurement_weight a MeasurementWeight object to use to 
         calculate the nutrient values, if None, the 100g values are returned
-        :param: count the number of nutrients to return (sorted by relevance)
+        :param: group list nutrients up to and equal to this group
         """
-
-        nut_names = ["Carbohydrate", "Protien", ""]
-
+        
         if measurement_weight == None:
             return None
             
@@ -207,6 +210,7 @@ class NutrientDefinition(db.Model):
     desc = db.Column(db.String(60))
     num_dec = db.Column(db.String(1))
     sr_order = db.Column(db.String(6))
+    group = db.Column(db.Integer)
 
     nutrients = db.relationship('NutrientData', backref='nutrient')
 
@@ -232,12 +236,16 @@ class NutrientData(db.Model):
     val_min = db.Column(db.Float)
     val_max = db.Column(db.Float)
 
+
     def __repr__(self):
-        return '<NutrientData: %s: %s: %s>' % (self.food, self.nutrient, self.nutr_val)
+        return '<NutrientData: %s: %s: %s>' % (self.food_description, self.nutrient, self.nutr_val)
 
 
-    def html(self):
+    def _html_table_row(self):
         return '<tr><td></td><td></td></tr>'
+
+    def _html_select_item(self):
+        return 'todo'
 
     def from_ndb(self, ndb_row):
         self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
@@ -300,9 +308,8 @@ class MeasurementWeight(db.Model):
     std_dev = db.Column(db.Float)
 
     def __repr__(self):
-        return '<MeasurementWeight: %s weighs %dg>' % \
-                (self.description, self.gram_weight)
-
+        return '<MeasurementWeight: %s of %s weighs %dg>' % \
+                (self.description, self.food_description, self.gram_weight)
 
     
     def from_ndb(self, ndb_row):
