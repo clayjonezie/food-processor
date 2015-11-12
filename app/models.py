@@ -10,6 +10,11 @@ from . import fplib
 
 
 class RawEntry(db.Model):
+    """
+    A RawEntry object is the text a user initially entered, and the entry point
+    to the NLP pipeline. Currently limited to 1024 chars, this could be easily
+    increased. 
+    """
     __tablename__ = 'raw_entries'
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(1024))
@@ -32,18 +37,25 @@ class RawEntry(db.Model):
 
 
 def get_week_list(user):
+    """
+    :param user: the user
+    returns a list of RawEntry objects for a given user 
+    over the last week
+    """
     now = datetime.utcnow()
     weekago = now - timedelta(days=6)
-    query = RawEntry.query.filter(RawEntry.at >= weekago.isoformat())
-    query = query.filter(RawEntry.user == user)
-    query = query.order_by('at desc')
-    return query.all()
+    return RawEntry.query.filter(RawEntry.at >= weekago.isoformat()).\
+            filter(RawEntry.user == user).\
+            query.order_by('at desc').all()
 
-
-# histogram of previous week of entries
-# returns is a list of tuples 
-# [(date, [entry1, entry2]), (date2,[...])]
 def get_week_hist(user):
+    """
+    :param user: the user
+    creates a dictionary of dates over the last week with lists of
+    entries from that day
+    :return: a list of tuples (date, list of entries) like
+    [(date, [entry1, entry2]), (date2,[...]),...]
+    """
     now = datetime.utcnow()
     entries = get_week_list(user)
     dates = [(now.date() - timedelta(days=r)) for r in range(6)]
@@ -82,15 +94,6 @@ class User(UserMixin, db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-
-class BadWord(db.Model):
-    __tablename__ = 'bad_words'
-    id = db.Column(db.Integer, primary_key=True)
-    word = db.Column(db.String(255), unique=True)
-
-    def __repr__(self):
-        return '<BadWord: %r>' % self.word
 
 
 class FoodShort(db.Model):
