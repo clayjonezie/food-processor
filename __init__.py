@@ -10,29 +10,4 @@ from flask_wtf.csrf import CsrfProtect
 from fplib import keys
 from views import main
 
-app = Flask(__name__)
-db = SQLAlchemy()
-my_bcrypt = Bcrypt()
-bootstrap = Bootstrap()
-moment = Moment()
-login_manager = LoginManager()
 
-
-def create_app(config):
-    """Returns a Flask() instance
-    :param config: a string specifying the configuration environment
-    """
-    app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
-    app.config["DEBUG"] = True
-    app.secret_key = 'dogfood'
-
-    db.init_app(app)
-    my_bcrypt.init_app(app)
-    bootstrap.init_app(app)
-    moment.init_app(app)
-    login_manager.session_protection = 'strong'
-    login_manager.login_view = 'login'
-    login_manager.init_app(app)
-
-    app.register_blueprint(main)
-    return app

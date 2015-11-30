@@ -49,12 +49,6 @@ def authenticated_home():
     return render_template('home_authenticated.html', week=week, create_form=create_form)
 
 
-@main.route('/raw_entries', methods=['GET', 'POST'])
-@login_required
-def raw_entries():
-    return render_template('raw_entries.html')
-
-
 @main.route('/raw_entries/<int:id>', methods=['GET', 'POST'])
 @login_required
 def raw_entry(id):
@@ -87,6 +81,20 @@ def raw_entry_delete(id):
         db.session.delete(entry)
         db.session.commit()
         return redirect(url_for('main.home'))
+
+@main.route('/tag/<int:id>/delete')
+@login_required
+def tag_delete(id):
+    tag = Tag.query.get(id)
+    if tag is None:
+        abort(404)
+    elif tag.raw_entry.user != current_user:
+        abort(403)
+    else:
+        entry = tag.raw_entry
+        db.session.delete(tag)
+        db.session.commit()
+        return redirect(url_for('main.raw_entry', id=entry.id))
 
 
 @main.route('/short_preferences', methods=['GET', 'POST'])

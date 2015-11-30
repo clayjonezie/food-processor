@@ -13,8 +13,8 @@
         <tr><td>{{ tag.count }}</td>
             <td>{{ tag.food_description.measurement_select(tag.measurement, tag.id)|safe }}</td>
             <td>{{ tag.text }}</td>
-            <td>
             {% if tag.food_description %}
+            <td>
             <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
             </td>
             <td>
@@ -26,8 +26,11 @@
                 </table>
             </td>
             {% else %}
+            <td>
             Unknown (<a href="#">what?</a>)
+            </td>
             {% endif %}
+            <td><a href="{{ url_for('main.tag_delete', id=tag.id) }}">(delete)</a></td>
         </tr>
     {% endfor %} 
 </table>

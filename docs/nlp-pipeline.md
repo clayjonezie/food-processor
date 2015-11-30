@@ -1,8 +1,8 @@
 # NLP Pipeline
 
-As previously discussed, one objective of this project is to have a "smart" 
+One objective of this project is to have a "smart" 
 analysis of "raw" food journal data. This is a possible pipeline for us to 
-use to extract as much data as we can. See <this> page for definitions of
+use to extract as much data as we can. See ```app/models.py``` for definitions of
 model objects. 
 
 ## Overview and Example

@@ -18,8 +18,10 @@ login_manager = LoginManager()
 
 
 def create_app(config):
-    """Create, configure, and return a Flask() instance
-      :param config: a string describing the environment"""
+    """
+    :param config: a string specifying the configuration environment
+    :return: a Flask instance properly configured
+    """
     app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
     app.config["DEBUG"] = True
     app.secret_key = 'dogfood'

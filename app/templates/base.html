@@ -30,10 +30,6 @@
         {% block menu_left %}
         <ul>
             <li style="display:inline"><a href="{{ url_for('main.home') }}">home</a></li>
-            {% if current_user.is_authenticated %}
-              | <li style="display:inline"><a href="{{ url_for('main.raw_entries') }}">raw entries</a></li>
-              | <li style="display:inline"><a href="{{ url_for('main.short_preferences') }}">short preferences</a></li>
-            {% endif %}
         </ul>
         {% endblock %}
       </div>
