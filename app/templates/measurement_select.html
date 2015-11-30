@@ -1,0 +1,12 @@
+<form method="post">
+    <input type="hidden" name="tag_id" value="{{ tag_id }}" />
+    <select name="measurement" onchange="this.form.submit()">
+    {% for measurement in measurements %}
+        <option value="{{ measurement.id }}" 
+        {% if measurement == selected %}
+            selected
+        {% endif %}>
+        {{ measurement.description }} ({{ measurement.gram_weight}}g)</option>
+    {% endfor %}
+</select>
+</form>

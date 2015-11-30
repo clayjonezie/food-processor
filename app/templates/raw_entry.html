@@ -3,22 +3,33 @@
 {% block title %}entry {{ entry.at }}{% endblock %}
 
 {% block my_content %}
-<h3>{{ entry.at }}</h3>
+<h3>{{ entry.at }}: 
+    {{ entry.content }} 
+    <a href="{{ url_for('main.raw_entry_delete', id=entry.id) }}">(delete)</a>
+</h3>
 
-<p>{{ entry.content }}</p>
-<p><ul>
-  {% for tag in entry.tags %}
-      <li>
-      {% if tag.count != 1.0 %}
-        {{ tag.count }} x 
-      {% endif %}
-        {{ tag.text }} -
-          {% if tag.food_description %}
-          <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
-          {% endif %}
-
-      </li>
-  {% endfor %} 
-</ul></p>
+<table class="table table-bordered">
+    {% for tag in entry.tags %}
+        <tr><td>{{ tag.count }}</td>
+            <td>{{ tag.food_description.measurement_select(tag.measurement, tag.id)|safe }}</td>
+            <td>{{ tag.text }}</td>
+            <td>
+            {% if tag.food_description %}
+            <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
+            </td>
+            <td>
+                <table class="table table-bordered">
+                    {% for nutr in tag.food_description.get_nutrients_by_group(1, tag.measurement) %}
+                    <tr><td>{{ nutr[0].desc }}</td><td>{{ nutr[1] }}{{ nutr[0].units }}</td></tr>
+                    {% endfor %}
+                    <tr>
+                </table>
+            </td>
+            {% else %}
+            Unknown (<a href="#">what?</a>)
+            {% endif %}
+        </tr>
+    {% endfor %} 
+</table>
 
 {% endblock %}

@@ -27,8 +27,8 @@
     {% if day[1]|length > 0 %}  
         {% for entry in day[1] %}
         <tr>
-            <td><p><a href="{{ url_for('main.raw_entry', id=entry.id) }}">{{ moment(entry.at).calendar() }}</a>:
-                {{ entry.content }}
+            <td><p>{{ moment(entry.at).calendar() }}: {{ entry.content }}
+                <a href="{{ url_for('main.raw_entry', id=entry.id) }}">(edit)</a></p>
                 <table class="table table-bordered">
                     {% for tag in entry.tags %}
                         <tr><td>{{ tag.count }}</td>

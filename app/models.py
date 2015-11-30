@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
+from flask import render_template
 
 from . import db
 from . import login_manager
@@ -210,6 +211,13 @@ class FoodDescription(db.Model):
     
         # couldn't find any
         return self.measurements[0]
+
+
+    def measurement_select(self, selected, tag_id=None):
+        return render_template("measurement_select.html", 
+                measurements=self.measurements, 
+                selected=selected, 
+                tag_id=tag_id)
 
 
     def from_ndb(self, ndb_row):

@@ -42,8 +42,8 @@ def authenticated_home():
         db.session.add(entry)
         db.session.add_all(nlp.tag_raw_entry(entry))
         db.session.commit()
-        flash("added %s" % create_form.content.data)
-        create_form.content.data = ""
+        flash('added %s' % create_form.content.data)
+        create_form.content.data = ''
 
     week = get_week_hist(current_user)
     return render_template('home_authenticated.html', week=week, create_form=create_form)
@@ -55,7 +55,7 @@ def raw_entries():
     return render_template('raw_entries.html')
 
 
-@main.route('/raw_entries/<int:id>')
+@main.route('/raw_entries/<int:id>', methods=['GET', 'POST'])
 @login_required
 def raw_entry(id):
     entry = RawEntry.query.get(id)
@@ -64,7 +64,29 @@ def raw_entry(id):
     elif entry.user != current_user:
         abort(403)
     else:
+        if request.method == 'POST':
+            print request.form
+            if (request.form.has_key("measurement")):
+                measurement = MeasurementWeight.query.get(int(request.form["measurement"]))
+                tag = Tag.query.get(int(request.form["tag_id"]))
+                tag.measurement = measurement
+                db.session.commit()
+
         return render_template('raw_entry.html', entry=entry)
+
+
+@main.route('/raw_entries/<int:id>/delete')
+@login_required
+def raw_entry_delete(id):
+    entry = RawEntry.query.get(id)
+    if entry is None:
+        abort(404)
+    elif entry.user != current_user:
+        abort(403)
+    else:
+        db.session.delete(entry)
+        db.session.commit()
+        return redirect(url_for('main.home'))
 
 
 @main.route('/short_preferences', methods=['GET', 'POST'])
