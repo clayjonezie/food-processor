@@ -25,23 +25,34 @@
 {% for day in week %}
     <tr><td colspan="1000000"><h4>{{ day[0].strftime("%A, %B %d") }}</h4></td></tr>
     {% if day[1]|length > 0 %}  
-        <tr><th>date</th><th>raw entry</th><th>tagged entry</th></tr>
         {% for entry in day[1] %}
         <tr>
-            <td><a href="{{ url_for('main.raw_entry', id=entry.id) }}">{{ moment(entry.at).calendar() }}</a></td>
-            <td>{{ entry.content }}</td>
-            <td><ul>
-                {% for tag in entry.tags %}
-                    <li>
-                        {{ tag.count }}:{{ tag.text }} >>> 
-                        {% if tag.food_description %}
-                        <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
-                        {% else %}
-                        Unknown
-                        {% endif %}
-                    </li>
-                {% endfor %} 
-            </ul></td>
+            <td><p><a href="{{ url_for('main.raw_entry', id=entry.id) }}">{{ moment(entry.at).calendar() }}</a>:
+                {{ entry.content }}
+                <table class="table table-bordered">
+                    {% for tag in entry.tags %}
+                        <tr><td>{{ tag.count }}</td>
+                            <td>{{ tag.measurement.description }} ({{ tag.measurement.gram_weight }}g)</td>
+                            <td>{{ tag.text }}</td>
+                            <td>
+                            {% if tag.food_description %}
+                            <a href="{{ url_for('main.food', id=tag.food_description.id) }}">{{ tag.food_description.long_desc }}</a>
+                            </td>
+                            <td>
+                                <table class="table table-bordered">
+                                    {% for nutr in tag.food_description.get_nutrients_by_group(1, tag.measurement) %}
+                                    <tr><td>{{ nutr[0].desc }}</td><td>{{ nutr[1] }}{{ nutr[0].units }}</td></tr>
+                                    {% endfor %}
+                                    <tr>
+                                </table>
+                            </td>
+                            {% else %}
+                            Unknown (<a href="#">what?</a>)
+                            {% endif %}
+                        </tr>
+                    {% endfor %} 
+                </table>
+            </td>
         </tr>
         {% endfor %}
     {% else %}

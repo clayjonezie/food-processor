@@ -3,6 +3,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
 from datetime import datetime, timedelta
+from fuzzywuzzy import fuzz
 
 from . import db
 from . import login_manager
@@ -45,8 +46,9 @@ def get_week_list(user):
     now = datetime.utcnow()
     weekago = now - timedelta(days=6)
     return RawEntry.query.filter(RawEntry.at >= weekago.isoformat()).\
+            filter(RawEntry.at <= now.isoformat()).\
             filter(RawEntry.user == user).\
-            query.order_by('at desc').all()
+            order_by('at desc').all()
 
 def get_week_hist(user):
     """
@@ -58,7 +60,7 @@ def get_week_hist(user):
     """
     now = datetime.utcnow()
     entries = get_week_list(user)
-    dates = [(now.date() - timedelta(days=r)) for r in range(6)]
+    dates = [(now.date() - timedelta(days=r)) for r in range(7)]
     week = dict()
     for d in dates:
         week[d] = list()
@@ -90,6 +92,8 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def __repr__(self):
+        return '<User: %s>' % self.email
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -123,6 +127,7 @@ class FoodShort(db.Model):
     @staticmethod
     def get_food(short, user=None):
         fs = FoodShort.get_or_create(short)
+        
         if user is not None:
             pref = ShortPreference.query.filter(ShortPreference.food_short == fs,
                                                 ShortPreference.user == user).first()
@@ -132,6 +137,10 @@ class FoodShort(db.Model):
                 return pref.food_description
         else:
             return fs.common_long
+
+
+    def __repr__(self):
+        return '<FoodShort: %s -> %s>' % (self.name, self.common_long)
 
 
 class FoodDescription(db.Model):
@@ -159,10 +168,14 @@ class FoodDescription(db.Model):
         return "<FoodDescription: %s>" % self.long_desc
 
     
-    def get_nutrient_by_group(self, group):
+    def get_nutrients_by_group(self, group=0, measurement=None):
         """ 
-        :param group: string contained in the nutrient descriptin 
-        :return: all nutrients in this group or lower 
+        :param group: string contained in the nutrient description
+        :param measurement: the measurement to use to calculate things
+        :return: paris in the form of (NutrientDefintion, scaled_float_nutr_value)
+
+        nutrient data is on a 100g scale, so we must scale to the measurement
+        scaled_nutrient = nutrient_in_100g * grams_in_measurement / 100g
         """
         NDATA = NutrientData
         NDEF = NutrientDefinition
@@ -170,19 +183,33 @@ class FoodDescription(db.Model):
                 filter(NDEF.group==group).\
                 filter(NDATA.nutr_no==NDEF.nutr_no).\
                 filter(NDATA.ndb_no==self.id).all()
-        return map(lambda i: i[1], pairs)
 
-
-    def get_nutrient_group(self, measurement_weight=None, group=0):
-        """ 
-        :param: measurement_weight a MeasurementWeight object to use to 
-        calculate the nutrient values, if None, the 100g values are returned
-        :param: group list nutrients up to and equal to this group
-        """
         
-        if measurement_weight == None:
+        def calculate(original):
+            if measurement is not None:
+                return (original[0], 
+                        measurement.gram_weight * original[1].nutr_val / 100)
+            else:
+                return (original[0], original[1].nutr_val)
+
+        return map(calculate, pairs)
+
+
+    def best_measurement(self, entry_hint=None):
+        if len(self.measurements) == 0:
             return None
-            
+
+        favor = ["nlea", "bunch", "whole", "medium", "cup"]
+        if (entry_hint is not None):
+            favor.insert(0, entry_hint.lower())
+
+        for f in favor:
+            for ms in self.measurements:
+                if f in ms.description.lower():
+                    return ms
+    
+        # couldn't find any
+        return self.measurements[0]
 
 
     def from_ndb(self, ndb_row):
@@ -281,7 +308,7 @@ class Tag(db.Model):
     measurement_weight_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
 
     def __repr__(self):
-        return '<Tag: %i %f %s>' % (self.id, self.count or 0, self.text)
+        return '<Tag: %s %f %s>' % (str(self.id), self.count or 0, self.text)
 
 
 class ShortPreference(db.Model):
@@ -293,8 +320,19 @@ class ShortPreference(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
+        if self.food_short is not None:
+            food_short_name = self.food_short.name
+        else:
+            food_short_name = 'None (error?)'
+
+        if self.food_description is not None:
+            food_description_name = self.food_description.long_desc
+        else:
+            food_description_name = 'None (error?)'
+
+        food_description_desc = 'None'
         return '<ShortPreference: %s -> %s>' %  \
-            (self.food_short.name, self.food_description.long_desc)
+            (food_short_name, food_description_name)
 
 
 class MeasurementWeight(db.Model):
@@ -310,9 +348,12 @@ class MeasurementWeight(db.Model):
     num_data_points = db.Column(db.Integer)
     std_dev = db.Column(db.Float)
 
+    tags = db.relationship('Tag', backref='measurement')
+
     def __repr__(self):
-        return '<MeasurementWeight: %s of %s weighs %dg>' % \
-                (self.description, self.food_description, self.gram_weight)
+        return '<MeasurementWeight: %d %s of %s weighs %dg>' % \
+                (self.amount, self.description, 
+                        self.food_description, self.gram_weight)
 
     
     def from_ndb(self, ndb_row):

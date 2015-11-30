@@ -5,9 +5,20 @@
 {% block my_content %}
 {{ super() }}
 
-{{ food.id }}
-{{ food.long_desc }}
+<h2>{{ food.id }}, {{ food.long_desc }}</h2>
 
+<h3>Sizes</h3>
+<table class="table">
+    <tr><th>description</th><th>weight in grams</th></tr>
+{% for ms in food.measurements %}
+<tr>
+<td>{{ ms.description }}</td>
+<td>{{ ms.gram_weight }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>nutrients in 100g</h3>
 <table class="table">
 {% for nutrient in food.nutrients %}
 <tr>
