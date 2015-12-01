@@ -1,5 +1,5 @@
 from flask.ext.wtf import Form
-from wtforms.fields import TextField, PasswordField, SubmitField
+from wtforms.fields import TextField, PasswordField, SubmitField, IntegerField, FloatField, HiddenField
 from wtforms.widgets import TextArea
 from wtforms.validators import Required, Email, Length
 
@@ -20,3 +20,8 @@ class AddShortPreference(Form):
     food_short = TextField('Short', validators=[Required(), Length(1, 255)])
     food_id = TextField('Food Desc id', validators=[Required()])
     submit = SubmitField('Submit')
+
+class CreateTag(Form):
+    food_id = IntegerField('Food Id', validators=[Required()])
+    submit = SubmitField('Add')
+

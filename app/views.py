@@ -58,15 +58,33 @@ def raw_entry(id):
     elif entry.user != current_user:
         abort(403)
     else:
+        create_tag_form = CreateTag()
         if request.method == 'POST':
-            print request.form
             if (request.form.has_key("measurement")):
-                measurement = MeasurementWeight.query.get(int(request.form["measurement"]))
+                measurement = MeasurementWeight.query.get(
+                        int(request.form["measurement"]))
                 tag = Tag.query.get(int(request.form["tag_id"]))
                 tag.measurement = measurement
                 db.session.commit()
+            elif (request.form.has_key("count")):
+                tag = Tag.query.get(int(request.form["tag_id"]))
+                tag.count = float(request.form["count"])
+                db.session.commit()
+            elif create_tag_form.validate():
+                food = FoodDescription.query.get(int(create_tag_form.food_id.data))
+                if food is not None:
+                    tag = Tag()
+                    tag.food_description = food
+                    tag.measurement = food.best_measurement()
+                    tag.count = 1.0
+                    tag.raw_entry = entry
+                    db.session.add(tag)
+                    db.session.commit()
+                    create_tag_form.food_id.data = ''
 
-        return render_template('raw_entry.html', entry=entry)
+        return render_template('raw_entry.html', 
+                entry=entry, 
+                create_tag_form=create_tag_form)
 
 
 @main.route('/raw_entries/<int:id>/delete')

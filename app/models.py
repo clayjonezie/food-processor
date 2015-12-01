@@ -315,6 +315,11 @@ class Tag(db.Model):
     size_units = db.Column(db.String(10))
     measurement_weight_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
 
+    def count_text_field(self):
+        return render_template("count_text_field.html", 
+                count=self.count, 
+                tag_id=self.id)
+
     def __repr__(self):
         return '<Tag: %s %f %s>' % (str(self.id), self.count or 0, self.text)
 
