@@ -22,22 +22,22 @@
 
 
 <table class="table">
-{% for day in week %}
-    <tr><td colspan="1000000"><h4>{{ day[0].strftime("%A, %B %d") }}</h4></td></tr>
-    {% if day[1]|length > 0 %}  
-        {% for entry in day[1] %}
-        <tr>
-            <td><h4>{{ moment(entry.at).calendar() }}: {{ entry.pretty_short()|safe }}
-                <a href="{{ url_for('main.raw_entry', id=entry.id) }}">(edit)</a></h4>
-                <table class="table table-bordered">
-                    {% for nutr in entry.nutrients(group=1) %}
-                        <tr><td>{{ nutr[0].desc }}</td><td>{{ nutr[1] }}{{ nutr[0].units }}</td></tr>
-                    {% endfor %}
-                    <tr>
-                </table>
-            </td>
-        </tr>
-        {% endfor %}
+{% for day_nuts, day_entries in week %}
+    <tr><td colspan="1000000"><h4>{{ day_nuts[0].strftime("%A, %B %d") }}</h4></td></tr>
+    {% if day_nuts[1]|length > 0 %}  
+        <table class="table table-bordered">
+            {% for entry in day_entries[1] %}
+                <tr><td>{{ entry.pretty_short()|safe }}</td>
+                    <td><a href="{{ url_for('main.raw_entry', id=entry.id) }}">(edit)</a></td></tr>
+            {% endfor %}
+            <tr>
+        </table>
+        <table class="table table-bordered">
+            {% for nutr in day_nuts[2] %}
+                <tr><td>{{ nutr[0].desc }}</td><td>{{ nutr[1] }}{{ nutr[0].units }}</td></tr>
+            {% endfor %}
+            <tr>
+        </table>
     {% else %}
         <tr><td colspan="1000000">Nothing!</td></tr>
     {% endif %}

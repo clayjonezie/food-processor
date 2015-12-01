@@ -5,6 +5,7 @@ from flask.ext.login import UserMixin
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 from flask import render_template
+from datetime import datetime, timedelta
 
 from . import db
 from . import login_manager
@@ -49,7 +50,6 @@ class RawEntry(db.Model):
                 ps += str(tag.count) + " x " + tag.food_description.long_desc + " | "
 
         return ps
-        
 
 
 def get_week_list(user):
@@ -84,6 +84,22 @@ def get_week_hist(user):
         week[entry.at.date()].append(entry)
 
     return [(d, week.get(d)) for d in sorted(week.keys(), reverse=True)]
+
+def get_week_days(user):
+    """
+    :param user: the user whos days we want
+    creates a list of (dates, list of tags) over the last week with lists of tags
+    from that day.
+    :return: a list of tuples: [(date, list of tags, [list of (nutr def, nutr val)]), ...]
+    """
+    now = datetime.utcnow()
+    dates = [(now.date() - timedelta(days=r)) for r in range(7)]
+    week = list()
+    for d in dates:
+        tags = Tag.get_day(user, d)
+        week.append((d, tags, FoodDescription.sum_nutrients(tags)))
+
+    return week
 
 
 class User(UserMixin, db.Model):
@@ -356,6 +372,22 @@ class Tag(db.Model):
 
     def __repr__(self):
         return '<Tag: %s %f %s>' % (str(self.id), self.count or 0, self.text)
+
+
+    @staticmethod
+    def get_day(user, start):
+        """ returns all tags from a day for a user """
+        end = start + timedelta(days=1)
+        raw_entries = RawEntry.query.filter(RawEntry.user_id==user.id).\
+                filter(RawEntry.at >= start.isoformat()).\
+                filter(RawEntry.at <= end.isoformat()).all()
+        tags = list()
+        for re in raw_entries:
+            for t in re.tags:
+                tags.append(t)
+
+        return tags
+
 
 
 class ShortPreference(db.Model):

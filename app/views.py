@@ -45,8 +45,10 @@ def authenticated_home():
         flash('added %s' % create_form.content.data)
         create_form.content.data = ''
 
-    week = get_week_hist(current_user)
-    return render_template('home_authenticated.html', week=week, create_form=create_form)
+    week_entries = get_week_hist(current_user)
+    week = get_week_days(current_user)
+    return render_template('home_authenticated.html', week=zip(week, week_entries),
+            create_form=create_form)
 
 
 @main.route('/raw_entries/<int:id>', methods=['GET', 'POST'])
@@ -99,6 +101,7 @@ def raw_entry_delete(id):
         db.session.delete(entry)
         db.session.commit()
         return redirect(url_for('main.home'))
+
 
 @main.route('/tag/<int:id>/delete')
 @login_required
