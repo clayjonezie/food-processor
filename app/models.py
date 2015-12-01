@@ -38,6 +38,20 @@ class RawEntry(db.Model):
         return self
 
 
+    def nutrients(self, group=1):
+        return FoodDescription.sum_nutrients(self.tags, group=group)
+
+
+    def pretty_short(self):
+        ps = ""
+        for tag in self.tags:
+            if tag.food_description is not None:
+                ps += str(tag.count) + " x " + tag.food_description.long_desc + " | "
+
+        return ps
+        
+
+
 def get_week_list(user):
     """
     :param user: the user
@@ -169,11 +183,11 @@ class FoodDescription(db.Model):
         return "<FoodDescription: %s>" % self.long_desc
 
     
-    def get_nutrients_by_group(self, group=0, measurement=None):
+    def get_nutrients_by_group(self, group=1, measurement=None, count=1):
         """ 
-        :param group: string contained in the nutrient description
+        :param group: what group to gather
         :param measurement: the measurement to use to calculate things
-        :return: paris in the form of (NutrientDefintion, scaled_float_nutr_value)
+        :return: list of pairs in the form of (NutrientDefintion, scaled_float_nutr_value)
 
         nutrient data is on a 100g scale, so we must scale to the measurement
         scaled_nutrient = nutrient_in_100g * grams_in_measurement / 100g
@@ -189,9 +203,9 @@ class FoodDescription(db.Model):
         def calculate(original):
             if measurement is not None:
                 return (original[0], 
-                        measurement.gram_weight * original[1].nutr_val / 100)
+                        count * measurement.gram_weight * original[1].nutr_val / 100)
             else:
-                return (original[0], original[1].nutr_val)
+                return (original[0], count * original[1].nutr_val)
 
         return map(calculate, pairs)
 
@@ -238,6 +252,26 @@ class FoodDescription(db.Model):
         self.cho_factor = ndb_row[13]
 
         return self
+
+    @staticmethod
+    def sum_nutrients(tags, group=1):
+        """
+        :param list foods: a list of tags to be summed
+        :return: list of pairs in the form of 
+        [(NutrientDefintion, summed_float_nutr_value), ...]
+        """
+        summed_nuts = dict()
+        for t in tags:
+            if t.food_description is not None:
+                nuts = t.food_description.get_nutrients_by_group(
+                        group=group, measurement=t.measurement, count=t.count)
+                for n in nuts:
+                    if n[0] in summed_nuts.keys():
+                        summed_nuts[n[0]] += n[1]
+                    else:
+                        summed_nuts[n[0]] = n[1]
+
+        return summed_nuts.items()
 
 
 class NutrientDefinition(db.Model):
