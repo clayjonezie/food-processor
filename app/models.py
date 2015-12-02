@@ -102,6 +102,27 @@ def get_week_days(user):
     return week
 
 
+def get_day_goals(user, day=None):
+    """
+    returns a list of tuples of the form
+    (NutrDef, percent complete, current amount, goal amount)
+    """
+    if day is None:
+        day = datetime.now().date()
+    tags = Tag.get_day(user, day)
+    nuts = FoodDescription.sum_nutrients(tags)
+
+    goals = list()
+    for nut in nuts:
+        nutdef = nut[0]
+        goal = user.get_goal(nutdef)
+        current_amount = nut[1]
+        percent = current_amount / goal
+        goals.append((nutdef, percent, current_amount, goal))
+       
+    return goals
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -111,6 +132,7 @@ class User(UserMixin, db.Model):
     raw_entries = db.relationship(
         'RawEntry', backref='user', order_by='desc(RawEntry.at)')
     short_preferences = db.relationship('ShortPreference', backref='user')
+    nutrient_goals = db.relationship('NutrientGoal', backref='user')
 
     @property
     def password(self):
@@ -122,6 +144,11 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def get_goal(self, nutrient_definition):
+        return NutrientGoal.query.\
+                filter(NutrientGoal.nutrient_id==nutrient_definition.nutr_no).\
+                filter(NutrientGoal.user_id==self.id).first().amount
 
     def __repr__(self):
         return '<User: %s>' % self.email
@@ -301,6 +328,7 @@ class NutrientDefinition(db.Model):
     group = db.Column(db.Integer)
 
     nutrients = db.relationship('NutrientData', backref='nutrient')
+    nutrient_goals = db.relationship('NutrientGoal', backref='nutrient')
 
     def __repr__(self):
         return "<NutrientDefinition: %s, %s>" % (self.desc, self.units)
@@ -310,6 +338,12 @@ class NutrientDefinition(db.Model):
             self.num_dec, self.sr_order = ndb_row
         self.nutr_no = int(self.nutr_no)
         return self
+
+
+    @staticmethod
+    def get_group(group):
+        return NutrientDefinition.query.\
+                filter(NutrientDefinition.group==group).all()
 
 
 class NutrientData(db.Model):
@@ -334,6 +368,7 @@ class NutrientData(db.Model):
 
     def _html_select_item(self):
         return 'todo'
+
 
     def from_ndb(self, ndb_row):
         self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
@@ -445,4 +480,12 @@ class MeasurementWeight(db.Model):
         self.std_dev = float(ndb_row[6]) if ndb_row[6] != '' else None
 
         return self
+
+
+class NutrientGoal(db.Model):
+    __tablename__ = 'nutrient_goals'
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    nutrient_id = db.Column(db.Integer, db.ForeignKey('nutrient_definitions.nutr_no'))
 

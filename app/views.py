@@ -48,7 +48,7 @@ def authenticated_home():
     week_entries = get_week_hist(current_user)
     week = get_week_days(current_user)
     return render_template('home_authenticated.html', week=zip(week, week_entries),
-            create_form=create_form)
+            create_form=create_form, day_goals=get_day_goals(current_user))
 
 
 @main.route('/raw_entries/<int:id>', methods=['GET', 'POST'])
