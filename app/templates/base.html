@@ -22,14 +22,16 @@
         <p>{{ current_user.email }}</p>
         <p><a href="{{ url_for('main.logout') }}">Log Out</a></p>
         {% else %}
-        <a href="{{ url_for('main.login') }}">Log In</a>
+            <a href="{{ url_for('main.login') }}">Log In</a> /
+            <a href="{{ url_for('main.signup') }}">Sign Up</a>
+
         {% endif %}
         </div>
       </div>
       <div class="row">
         {% block menu_left %}
         <ul>
-            <li style="display:inline"><a href="{{ url_for('main.home') }}">home</a></li>
+            <li style="display:inline"><a href="{{ url_for('main.index') }}">home</a></li>
         </ul>
         {% endblock %}
       </div>

@@ -1,77 +1,82 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}home{% endblock %}
 
 {% block my_content %}
-{{ super() }}
-<h2>about</h2>
-<p>
-This is Clay Jones' senior project for his Computer Science degree at California Polytechnic State University. 
-</p>
-<h2>problem</h2>
-<p>It is an insightful health practice but not a technical challenge to simply record all the food a patient eats. 
-However, there are many ways to improve the patient's likelihood to record all food, quality of the data, 
-and quality of the advice provided. Existing solutions lack customization, 
-were designed on outdated nutrition practices, have suboptimal user interfaces, and lack clinical application. 
-</p><p>
-It is a meticulous process to enter the nutrition info of every single thing you eat, 
-especially when following a diet that is low in commercially prepared foods (perhaps lacking labels or brand names). 
-We are asking patients to take a small amount of time every time they eat to enter this data. 
-This leads to patients forgetting or quitting the food tracking habit. 
-</p><p>
-Technology can be employed to assist with this. 
-</p>
-<h2>goals</h2>
-<p>
-It is easier for people to "jot down" what they ate, but complex nutritional analysis requires a lot of data regarding
-portion size, nutrient composition, or brand of food. My goal is to offload as much of this data collection to software
-as possible.
-</p>
-<h2>for testers</h2>
-<p>
-Please contact me for a testing account. Your data will be used by the system and visible to developers (myself).
-No other users will be able to see your food log. I do my best to backup all data but this project is a work in progress
-and highly unstable. 
-</p>
-<p>
-At first, there may not be much analysis or interesting features. I still believe it is a good practice
-to write down food intake because it makes you aware of your choices. Later when more features are avaliable, these food logs
-will still be in the database.
-</p>
+    {{ super() }}
+    <div style="margin-bottom: 20px">
+        <h4>What have you had to eat?</h4>
+        <form method="post" action="{{ url_for('main.create_raw_entry') }}">
+            <div class="row">
+                <div class="col-md-10">
+                    {{ create_form.content(class_='form-control') }}
+                </div>
+                <div class="col-md-2">
+                    {{ create_form.submit(class_='btn btn-default') }}
+                </div>
+                {{ create_form.csrf_token() }}
+            </div>
+        </form>
+    </div>
 
-<h2>data sources</h2>
-<p>
-Nutrition info via <a href="http://ndb.nal.usda.gov/">USDA National Nutrient Database</a>
-</p>
-<p>
-NLP corpora via <a href="http://www.nltk.org/api/nltk.corpus.html">NLTK</a>
-</p>
-<h2>open source projects used here</h2>
-<p>
-pip freeze: 
-<pre>
-alembic
-Flask
-Flask-Bcrypt
-Flask-Bootstrap
-Flask-Login
-Flask-Migrate
-Flask-Moment
-Flask-Script
-Flask-SQLAlchemy
-Flask-WTF
-itsdangerous
-Jinja2
-nltk
-oauth
-requests
-SQLAlchemy
-tweepy
-Twisted
-Werkzeug
-WTForms
-</pre>
-</p>
+    <style>
+        div.chart {
+            border: 1px solid black;
+            padding: 0px;
+        }
+
+        .chart div {
+            width: 100%;
+            font: 10px sans-serif;
+            background-color: steelblue;
+            text-align: left;
+            padding: 3px;
+            padding-right: 0px;
+            padding-left: 0px;
+            margin: 1px;
+            color: black;
+        }
+
+    </style>
+
+    <!-- Today's chart -->
+    {%  if day_goals|length != 0 %}
+        <div class="chart">
+            {% for nut in day_goals %}
+                <div style="width: {{ nut[1]*100 }}%;">{{ nut[0].desc }}: {{ nut[2] }}/{{ nut[3] }}{{ nut[0].unit }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Previous week's tables -->
+    <table class="table">
+        {% for day_nuts, day_entries in week %}
+            <tr><td colspan="1000000"><h4>{{ day_nuts[0].strftime("%A, %B %d") }}</h5></td></tr>
+            {% if day_nuts[1]|length > 0 %}
+                <table class="table table-bordered">
+                    {% for entry in day_entries[1] %}
+                        <tr><td>{{ entry.pretty_short()|safe }}</td>
+                            <td><a href="{{ url_for('main.raw_entry', id=entry.id) }}">(edit)</a></td></tr>
+                    {% endfor %}
+                    <tr>
+                </table>
+                <table class="table table-bordered">
+                    {% for nutr in day_nuts[2] %}
+                        <tr><td>{{ nutr[0].desc }}</td><td>{{ nutr[1] }}{{ nutr[0].units }}</td></tr>
+                    {% endfor %}
+                    <tr>
+                </table>
+            {% else %}
+                <tr><td colspan="1000000">Nothing!</td></tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+
+
 {% endblock %}
+{% block my_footer %}
+    {{ super() }}
 
+{% endblock %}
 

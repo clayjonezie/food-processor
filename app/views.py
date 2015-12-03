@@ -26,29 +26,39 @@ def food_search(query):
 
 
 @main.route('/', methods=['GET', 'POST'])
-def home():
+def index():
     if current_user.is_authenticated:
-        return authenticated_home()
+        return home()
     else:
-        return render_template('home.html')
+        return render_template('index.html')
 
 
-def authenticated_home():
+def home():
+    create_form = CreateRawEntryForm()
+    create_form.content.data = ''
+    week_entries = get_week_hist(current_user)
+    week = get_week_days(current_user)
+    return render_template('home.html', week=zip(week, week_entries),
+                           create_form=create_form, day_goals=get_day_goals(current_user))
+
+
+@main.route('/raw_entries/add', methods=['POST'])
+@login_required
+def create_raw_entry():
     create_form = CreateRawEntryForm()
     if create_form.validate_on_submit():
         entry = RawEntry(content=create_form.content.data,
                          at=datetime.utcnow())
         entry.user = current_user
         db.session.add(entry)
-        db.session.add_all(nlp.tag_raw_entry(entry))
-        db.session.commit()
-        flash('added %s' % create_form.content.data)
-        create_form.content.data = ''
-
-    week_entries = get_week_hist(current_user)
-    week = get_week_days(current_user)
-    return render_template('home_authenticated.html', week=zip(week, week_entries),
-            create_form=create_form, day_goals=get_day_goals(current_user))
+        tags = nlp.tag_raw_entry(entry)
+        if len(tags) > 0:
+            db.session.add_all(tags)
+            db.session.commit()
+            flash('added %s' % create_form.content.data)
+        else:
+            flash('there was nothing parseable there :( this is an issue!')
+    return redirect(url_for('main.index'))
 
 
 @main.route('/raw_entries/<int:id>', methods=['GET', 'POST'])
@@ -100,7 +110,7 @@ def raw_entry_delete(id):
     else:
         db.session.delete(entry)
         db.session.commit()
-        return redirect(url_for('main.home'))
+        return redirect(url_for('main.index'))
 
 
 @main.route('/tag/<int:id>/delete')
@@ -149,6 +159,22 @@ def short_preference(id):
     else:
         return render_template('short_preference.html', pref=pref)
 
+@main.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        if len(User.query.filter(User.email==form.email.data).all()) != 0:
+            flash("email %s exists." % form.email.data)
+        else:
+            user = User()
+            user.email =  form.email.data
+            user.password = form.password.data
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            flash('Signed up!')
+            return redirect(url_for('main.index'))
+    return render_template('signup.html', form=form)
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
@@ -157,7 +183,7 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, False)
-            return redirect(request.args.get('next') or url_for('main.home'))
+            return redirect(request.args.get('next') or url_for('main.index'))
         flash('Invalid email or password')
     return render_template('login.html', form=form)
 
@@ -167,7 +193,7 @@ def login():
 def logout():
     logout_user()
     flash('You were logged out.')
-    return redirect(url_for('main.home'))
+    return redirect(url_for('main.index'))
 
 
 @main.errorhandler(404)

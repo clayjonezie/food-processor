@@ -79,12 +79,12 @@ def nearby_food_descriptions(query):
 
 
 def tag_raw_entry(raw_entry):
-    lemer = WordNetLemmatizer()
+    lemmer = WordNetLemmatizer()
     tags = list()
     for token in tokenize(raw_entry.content):
         quantity = 1
         parts = re.split("\s+", token)
-        parts = [lemer.lemmatize(part) for part in parts]
+        parts = [lemmer.lemmatize(part) for part in parts]
         for i, part in enumerate(parts):
             if re.match(r'[0-9]', part) is not None:
                 try:
@@ -95,12 +95,12 @@ def tag_raw_entry(raw_entry):
 
         token = ' '.join(parts)
         best_fd = FoodShort.get_food(token, raw_entry.user)
-        if (best_fd):
+        if best_fd:
             measurement = best_fd.best_measurement()
-        tag = Tag(raw_entry=raw_entry, text=token,
-                  food_description=best_fd, count=quantity,
-                  measurement=measurement)
-        tags.append(tag)
+            tag = Tag(raw_entry=raw_entry, text=token,
+                      food_description=best_fd, count=quantity,
+                      measurement=measurement)
+            tags.append(tag)
 
     return tags
 

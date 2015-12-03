@@ -116,9 +116,10 @@ def get_day_goals(user, day=None):
     for nut in nuts:
         nutdef = nut[0]
         goal = user.get_goal(nutdef)
-        current_amount = nut[1]
-        percent = current_amount / goal
-        goals.append((nutdef, percent, current_amount, goal))
+        if goal is not None:
+            current_amount = nut[1]
+            percent = current_amount / goal
+            goals.append((nutdef, percent, current_amount, goal))
        
     return goals
 
@@ -146,9 +147,17 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def get_goal(self, nutrient_definition):
-        return NutrientGoal.query.\
+        """
+        :param nutrient_definition: the NutrientDefinition object to get the goal
+        :return: the amount of this user's goal for that nutrient, or None
+        :rtype: float or None
+        """
+        ng = NutrientGoal.query.\
                 filter(NutrientGoal.nutrient_id==nutrient_definition.nutr_no).\
-                filter(NutrientGoal.user_id==self.id).first().amount
+                filter(NutrientGoal.user_id==self.id).first()
+        if ng is not None:
+            return ng.amount
+        return None
 
     def __repr__(self):
         return '<User: %s>' % self.email
