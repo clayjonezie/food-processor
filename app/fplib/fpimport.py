@@ -1,7 +1,6 @@
 from __future__ import print_function
 from unidecode import unidecode
-from ..models import NutrientData, NutrientDefinition, FoodDescription, MeasurementWeight
-from ..models import User
+from ..models import *
 from .. import db
 
 
@@ -37,7 +36,6 @@ def import_measurement_weights():
         db.session.add(MeasurementWeight().from_ndb(lis))
     parse_and_call("app/fplib/WEIGHT.txt", import_function)
     db.session.commit()
-
 
 
 def parse_and_call(filename, func):

@@ -1,10 +1,6 @@
-from nltk.tokenize import RegexpTokenizer
-from nltk.util import ngrams
-from nltk.metrics.distance import edit_distance
 from nltk.stem import WordNetLemmatizer
-import re, fractions, operator
-from string import lower
-from collections import Counter
+import fractions
+import operator
 from fuzzywuzzy import fuzz
 import requests
 import re
@@ -47,7 +43,8 @@ def nearby_food_descriptions(query):
     good_words = ["raw"]
     good_measurements = ["NLEA"]
     for food in search_food_descriptions(query):
-        desc_parts = [part.strip() for part in food.long_desc.split(",") if part is not ""]
+        desc_parts = [part.strip() for part in food.long_desc.split(",")
+                      if part is not ""]
         weight = 100
         score = 0
         # weigh the earlier matches more
@@ -71,7 +68,8 @@ def nearby_food_descriptions(query):
     if google_resp is not None:
         nearnesses[FoodDescription.query.get(google_resp)] = 10000
 
-    sorted_nearnesses = sorted(nearnesses.items(), reverse=True, key=operator.itemgetter(1))
+    sorted_nearnesses = sorted(nearnesses.items(), reverse=True,
+                               key=operator.itemgetter(1))
     return map(lambda i: i[0], sorted_nearnesses)
 
 
@@ -116,7 +114,6 @@ def ask_google_for_ndb_no(query):
         return None
     text = text[first:second]
     resp = re.search('qlookup%3D[0-9]+', text)
-    if resp is None: 
+    if resp is None:
         return None
-    return int(resp.group(0).replace("qlookup%3D",""))
-
+    return int(resp.group(0).replace("qlookup%3D", ""))

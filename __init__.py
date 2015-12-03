@@ -9,5 +9,3 @@ from flask.ext.moment import Moment
 from flask_wtf.csrf import CsrfProtect
 from fplib import keys
 from views import main
-
-

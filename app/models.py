@@ -16,7 +16,7 @@ class RawEntry(db.Model):
     """
     A RawEntry object is the text a user initially entered, and the entry point
     to the NLP pipeline. Currently limited to 1024 chars, this could be easily
-    increased. 
+    increased.
     """
     __tablename__ = 'raw_entries'
     id = db.Column(db.Integer, primary_key=True)
@@ -38,16 +38,13 @@ class RawEntry(db.Model):
         self.user = user
         return self
 
-
     def nutrients(self, group=1):
         return FoodDescription.sum_nutrients(self.tags, group=group)
 
-
     def pretty_short(self):
         ps = ""
-        for tag in self.tags:
-            if tag.food_description is not None:
-                ps += str(tag.count) + " x " + tag.food_description.long_desc + " | "
+        for t in [t for t in self.tags if t.food_description is not None]:
+            ps += str(tag.count) + " x " + t.food_description.long_desc + " | "
 
         return ps
 
@@ -55,15 +52,16 @@ class RawEntry(db.Model):
 def get_week_list(user):
     """
     :param user: the user
-    returns a list of RawEntry objects for a given user 
+    returns a list of RawEntry objects for a given user
     over the last week
     """
     now = datetime.utcnow()
     weekago = now - timedelta(days=6)
     return RawEntry.query.filter(RawEntry.at >= weekago.isoformat()).\
-            filter(RawEntry.at <= now.isoformat()).\
-            filter(RawEntry.user == user).\
-            order_by('at desc').all()
+        filter(RawEntry.at <= now.isoformat()).\
+        filter(RawEntry.user == user).\
+        order_by('at desc').all()
+
 
 def get_week_hist(user):
     """
@@ -85,12 +83,14 @@ def get_week_hist(user):
 
     return [(d, week.get(d)) for d in sorted(week.keys(), reverse=True)]
 
+
 def get_week_days(user):
     """
     :param user: the user whos days we want
-    creates a list of (dates, list of tags) over the last week with lists of tags
-    from that day.
-    :return: a list of tuples: [(date, list of tags, [list of (nutr def, nutr val)]), ...]
+    creates a list of (dates, list of tags) over the last week with lists of
+    tags from that day.
+    :return: a list of tuples:
+    [(date, list of tags, [list of (nutr def, nutr val)]), ...]
     """
     now = datetime.utcnow()
     dates = [(now.date() - timedelta(days=r)) for r in range(7)]
@@ -120,7 +120,7 @@ def get_day_goals(user, day=None):
             current_amount = nut[1]
             percent = current_amount / goal
             goals.append((nutdef, percent, current_amount, goal))
-       
+
     return goals
 
 
@@ -148,19 +148,21 @@ class User(UserMixin, db.Model):
 
     def get_goal(self, nutrient_definition):
         """
-        :param nutrient_definition: the NutrientDefinition object to get the goal
+        :param nutrient_definition: the NutrientDefinition object to get the
+        goal
         :return: the amount of this user's goal for that nutrient, or None
         :rtype: float or None
         """
         ng = NutrientGoal.query.\
-                filter(NutrientGoal.nutrient_id==nutrient_definition.nutr_no).\
-                filter(NutrientGoal.user_id==self.id).first()
+            filter(NutrientGoal.nutrient_id == nutrient_definition.nutr_no).\
+            filter(NutrientGoal.user_id == self.id).first()
         if ng is not None:
             return ng.amount
         return None
 
     def __repr__(self):
         return '<User: %s>' % self.email
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -196,15 +198,15 @@ class FoodShort(db.Model):
         fs = FoodShort.get_or_create(short)
 
         if user is not None:
-            pref = ShortPreference.query.filter(ShortPreference.food_short == fs,
-                                                ShortPreference.user == user).first()
+            SP = ShortPreference
+            pref = SP.query.filter(SP.food_short == fs,
+                                   SP.user == user).first()
             if pref is None:
                 return fs.common_long
             else:
                 return pref.food_description
         else:
             return fs.common_long
-
 
     def __repr__(self):
         return '<FoodShort: %s -> %s>' % (self.name, self.common_long)
@@ -225,21 +227,26 @@ class FoodDescription(db.Model):
     fat_factor = db.Column(db.String(10))
     cho_factor = db.Column(db.String(10))
 
-    shorts = db.relationship('FoodShort', backref='common_long')
-    tags = db.relationship('Tag', backref='food_description')
-    short_preferences = db.relationship('ShortPreference', backref='food_description')
-    measurements = db.relationship('MeasurementWeight', backref='food_description')
-    nutrients = db.relationship('NutrientData', backref='food_description')
+    shorts = db.relationship('FoodShort',
+                             backref='common_long')
+    tags = db.relationship('Tag',
+                           backref='food_description')
+    short_preferences = db.relationship('ShortPreference',
+                                        backref='food_description')
+    measurements = db.relationship('MeasurementWeight',
+                                   backref='food_description')
+    nutrients = db.relationship('NutrientData',
+                                backref='food_description')
 
     def __repr__(self):
         return "<FoodDescription: %s>" % self.long_desc
 
-    
     def get_nutrients_by_group(self, group=1, measurement=None, count=1):
-        """ 
+        """
         :param group: what group to gather
         :param measurement: the measurement to use to calculate things
-        :return: list of pairs in the form of (NutrientDefintion, scaled_float_nutr_value)
+        :return: list of pairs in the form of
+        [(NutrientDefintion, scaled_float_nutr_value), ...]
 
         nutrient data is on a 100g scale, so we must scale to the measurement
         scaled_nutrient = nutrient_in_100g * grams_in_measurement / 100g
@@ -247,20 +254,19 @@ class FoodDescription(db.Model):
         NDATA = NutrientData
         NDEF = NutrientDefinition
         pairs = db.session.query(NDEF, NDATA).\
-                filter(NDEF.group==group).\
-                filter(NDATA.nutr_no==NDEF.nutr_no).\
-                filter(NDATA.ndb_no==self.id).all()
+            filter(NDEF.group == group).\
+            filter(NDATA.nutr_no == NDEF.nutr_no).\
+            filter(NDATA.ndb_no == self.id).all()
 
-        
         def calculate(original):
             if measurement is not None:
-                return (original[0], 
-                        count * measurement.gram_weight * original[1].nutr_val / 100)
+                return (original[0],
+                        count * measurement.gram_weight *
+                        original[1].nutr_val / 100)
             else:
                 return (original[0], count * original[1].nutr_val)
 
         return map(calculate, pairs)
-
 
     def best_measurement(self, entry_hint=None):
         if len(self.measurements) == 0:
