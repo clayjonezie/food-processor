@@ -15,7 +15,7 @@ from ..models import FoodDescription, FoodShort, Tag
 def tokenize(text):
     """
     First splits on r',|\.|and', strips the result, and removes empty tokens
-    :param text:
+    :param text: the text to tokenize
     :return: list of string tokens
     """
     tokens = re.split(r',|\.|and', text)
@@ -24,13 +24,11 @@ def tokenize(text):
     return tokens
 
 
-# performs simple existance search against the 'long_desc'
-# field of FoodDescription
 def search_food_descriptions(query):
     """
     :param query: the string to be in the raw sql
-    :return: a list of FoodDescription objects whose long_desc field contaians
-    query
+    :return: a list of FoodDescription objects whose long_desc field contains
+    the query
     """
     return FoodDescription.query.filter(
         FoodDescription.long_desc.like("%%%s%%" % query)).all()
@@ -43,7 +41,7 @@ def nearby_food_descriptions(query):
     :param query: the string to be passed to search_food_descriptions
     :return: a list sorted by nearness
     """
-    nearnesses = list()
+    nearnesses = dict()
     query = query.strip()
 
     good_words = ["raw"]
@@ -65,17 +63,16 @@ def nearby_food_descriptions(query):
         if any(["NLEA" in ms.description for ms in food.measurements]):
             score += 25
 
-        nearnesses.append((score, food))
+        nearnesses[food] = score
 
     # coming from google gives you a great score...
+    # TODO: cache this search...
     google_resp = ask_google_for_ndb_no(query)
     if google_resp is not None:
-        nearnesses.append((10000, FoodDescription.query.get(google_resp)))
-        print 'google_resp: ', google_resp
+        nearnesses[FoodDescription.query.get(google_resp)] = 10000
 
-    sorted_nearnesses = sorted(nearnesses, reverse=True)
-    print sorted_nearnesses
-    return map(lambda i: i[1], sorted_nearnesses)
+    sorted_nearnesses = sorted(nearnesses.items(), reverse=True, key=operator.itemgetter(1))
+    return map(lambda i: i[0], sorted_nearnesses)
 
 
 def tag_raw_entry(raw_entry):
@@ -121,6 +118,5 @@ def ask_google_for_ndb_no(query):
     resp = re.search('qlookup%3D[0-9]+', text)
     if resp is None: 
         return None
-    print 'resp group is', resp.group(0)
     return int(resp.group(0).replace("qlookup%3D",""))
 

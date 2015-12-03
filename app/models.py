@@ -194,7 +194,7 @@ class FoodShort(db.Model):
     @staticmethod
     def get_food(short, user=None):
         fs = FoodShort.get_or_create(short)
-        
+
         if user is not None:
             pref = ShortPreference.query.filter(ShortPreference.food_short == fs,
                                                 ShortPreference.user == user).first()
@@ -326,6 +326,20 @@ class FoodDescription(db.Model):
         return summed_nuts.items()
 
 
+    @staticmethod
+    def get(item):
+        if isinstance(item, str):
+            return FoodDescription.get_by_long_desc(item)
+        if isinstance(item, int):
+            return FoodDescription.query.get(item)
+
+
+    @staticmethod
+    def get_by_long_desc(long_desc):
+        FD = FoodDescription
+        return FD.query.filter(FD.long_desc==long_desc).first()
+
+
 class NutrientDefinition(db.Model):
     __tablename__ = 'nutrient_definitions'
     nutr_no = db.Column(db.Integer, primary_key=True)
@@ -416,6 +430,19 @@ class Tag(db.Model):
 
     def __repr__(self):
         return '<Tag: %s %f %s>' % (str(self.id), self.count or 0, self.text)
+
+
+    def __init__(self, raw_entry, pos, text, food_short,
+                 food_description, count, size, size_units,
+                 measurement_weight):
+        self.raw_entry = raw_entry
+        self.pos = pos
+        self.food_short = food_short
+        self.food_description = food_description
+        self.count = count
+        self.size = size
+        self.size_units
+        self.measurement_weight = measurement_weight
 
 
     @staticmethod

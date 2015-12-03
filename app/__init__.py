@@ -12,7 +12,6 @@ from fplib import keys
 app = Flask(__name__)
 db = SQLAlchemy()
 my_bcrypt = Bcrypt()
-bootstrap = Bootstrap()
 moment = Moment()
 login_manager = LoginManager()
 
@@ -25,6 +24,8 @@ def create_app(config):
     app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
     app.config["DEBUG"] = True
     app.secret_key = 'dogfood'
+
+    bootstrap = Bootstrap()
 
     db.init_app(app)
     my_bcrypt.init_app(app)

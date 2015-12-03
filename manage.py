@@ -10,8 +10,6 @@ app = create_app('shell')
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-app.debug = True
-
 
 def make_shell_context():
     return dict(app=app,
@@ -26,7 +24,7 @@ manager.add_command("db", MigrateCommand)
 
 @manager.command
 def fill():
-    from app.fplib.ndb_import import import_all
+    from app.fplib.fpimport import import_all
     import_all()
 
 
