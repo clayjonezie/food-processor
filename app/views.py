@@ -148,6 +148,32 @@ def short_preferences():
     return render_template('short_preferences.html', form=form)
 
 
+@main.route('/goals')
+@login_required
+def goals():
+    goals = current_user.get_all_goals()
+    return render_template('goals.html', goals=goals)
+
+
+@main.route('/goals/add', methods=['POST'])
+@login_required
+def create_goal():
+    """
+    This is a a bit of a misnomer because the same endpoint adds
+    a new goal and updates an existing goal
+    """
+#    ImmutableMultiDict([('nutrient_id', u'209'), ('amount', u'0.0')])
+    if request.form.has_key('nutrient_id') and request.form.has_key('amount'):
+        nutrient = NutrientDefinition.query.get(
+            int(request.form.get('nutrient_id')))
+        amount = request.form.get('amount')
+        goal = NutrientGoal(amount, current_user, nutrient)
+        db.session.add(goal)
+        db.session.commit()
+    return redirect(url_for('main.goals'))
+
+
+
 @main.route('/short_preferences/<int:id>')
 @login_required
 def short_preference(id):

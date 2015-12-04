@@ -92,9 +92,10 @@ def tag_raw_entry(raw_entry):
         best_fd = FoodShort.get_food(token, raw_entry.user)
         if best_fd:
             measurement = best_fd.best_measurement()
-            tag = Tag(raw_entry=raw_entry, text=token,
+            tag = Tag(raw_entry=raw_entry, text=token, pos=0,
+                      food_short=None, size=1, size_units=None,
                       food_description=best_fd, count=quantity,
-                      measurement=measurement)
+                      measurement_weight=measurement)
             tags.append(tag)
 
     return tags

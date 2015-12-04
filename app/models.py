@@ -44,7 +44,7 @@ class RawEntry(db.Model):
     def pretty_short(self):
         ps = ""
         for t in [t for t in self.tags if t.food_description is not None]:
-            ps += str(tag.count) + " x " + t.food_description.long_desc + " | "
+            ps += str(t.count) + " x " + t.food_description.long_desc + " | "
 
         return ps
 
@@ -159,6 +159,20 @@ class User(UserMixin, db.Model):
         if ng is not None:
             return ng.amount
         return None
+
+    def get_all_goals(self):
+        """
+        :return: a list of goals with the unset ones as zero
+        """
+        goals = NutrientGoal.query.filter(NutrientGoal.user_id==self.id).all()
+        goal_set_nutrients = [g.nutrient for g in goals]
+        nutrients = NutrientDefinition.query.all()
+        for nut in nutrients:
+            if nut not in goal_set_nutrients:
+                goals.append(NutrientGoal(0, self, nut))
+        return goals
+
+
 
     def __repr__(self):
         return '<User: %s>' % self.email
@@ -531,3 +545,7 @@ class NutrientGoal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     nutrient_id = db.Column(db.Integer, db.ForeignKey('nutrient_definitions.nutr_no'))
 
+    def __init__(self, amount, user, nutrient):
+        self.amount = amount
+        self.user = user
+        self.nutrient = nutrient
