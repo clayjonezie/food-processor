@@ -14,7 +14,7 @@ def tokenize(text):
     :param text: the text to tokenize
     :return: list of string tokens
     """
-    tokens = re.split(r',|\.|and', text)
+    tokens = re.split(r',|\.(?![0-9])|and', text)
     tokens = [t.strip() for t in tokens]
     tokens = [t for t in tokens if t is not u'']
     return tokens
@@ -77,11 +77,13 @@ def tag_raw_entry(raw_entry):
     lemmer = WordNetLemmatizer()
     tags = list()
     for token in tokenize(raw_entry.content):
+        print 'TOKEN:', token
         quantity = 1
         parts = re.split("\s+", token)
         parts = [lemmer.lemmatize(part) for part in parts]
+        print "parts:", parts
         for i, part in enumerate(parts):
-            if re.match(r'[0-9]', part) is not None:
+            if re.match(r'[0-9]*\.*[0-9]', part) is not None:
                 try:
                     quantity = float(fractions.Fraction(part))
                     del parts[i]
@@ -89,6 +91,7 @@ def tag_raw_entry(raw_entry):
                     pass
 
         token = ' '.join(parts)
+        print 'token', token
         best_fd = FoodShort.get_food(token, raw_entry.user)
         if best_fd:
             measurement = best_fd.best_measurement()

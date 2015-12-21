@@ -25,9 +25,10 @@ class RawEntry(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     tags = db.relationship('Tag', backref='raw_entry')
 
-    def __init__(self, content=None, at=None):
+    def __init__(self, content=None, at=None, user=None):
         self.content = content
         self.at = at
+        self.user = user
 
     def __repr__(self):
         return '<Entry: %r>' % self.content
@@ -209,6 +210,8 @@ class FoodShort(db.Model):
 
     @staticmethod
     def get_food(short, user=None):
+        if short=='' or short is None:
+            return None
         fs = FoodShort.get_or_create(short)
 
         if user is not None:

@@ -1,5 +1,5 @@
 import unittest
-from app.fplib import nlp
+from app.fplib import nlp, fpdb
 from app.models import *
 
 """
@@ -24,7 +24,10 @@ class NlpTest(unittest.TestCase):
         self.assertEqual(nlp.tokenize(s1), l1)
         s2 = u'peach,,.. hamburger,apples'
         l2 = [u'peach', u'hamburger', u'apples']
-        self.assertEqual(nlp.tokenize(s1), l1)
+        self.assertEqual(nlp.tokenize(s2), l2)
+        s3 = ".5 apples"
+        l3 = [u'.5 apples']
+        self.assertEqual(nlp.tokenize(s3), l3)
 
     def test_search_food_descriptions(self):
         #  select id, long_desc from food_descriptions where long_desc like '%%avocado%%';
@@ -49,7 +52,9 @@ class NlpTest(unittest.TestCase):
 
     #todo when this is better nailed down
     def test_tag_raw_entry(self):
-        pass
+        re1 = RawEntry(content=".5 apples", at=datetime.now(), 
+                user=fpdb.me())
+        print nlp.tag_raw_entry(re1)
 
     # maybe don't have network dependant tests
     # (well sql is on the network!)
