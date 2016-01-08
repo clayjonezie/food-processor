@@ -18,6 +18,11 @@ def food(id):
     return render_template('food.html', food=food)
 
 
+@main.route('/food/add', methods=['GET', 'POST'])
+def create_food():
+    return render_template('create_food.html')
+
+
 @main.route('/food/search/<query>')
 def food_search(query):
     results = nlp.nearby_food_descriptions(query) + \
@@ -31,6 +36,11 @@ def index():
         return home()
     else:
         return render_template('index.html')
+
+
+@main.route('/contact', methods=['GET'])
+def contact():
+    return render_template('contact.html')
 
 
 def home():
@@ -50,9 +60,9 @@ def create_raw_entry():
         entry = RawEntry(content=create_form.content.data,
                          at=datetime.utcnow())
         entry.user = current_user
-        db.session.add(entry)
         tags = nlp.tag_raw_entry(entry)
         if len(tags) > 0:
+            db.session.add(entry)
             db.session.add_all(tags)
             db.session.commit()
             flash('added %s' % create_form.content.data)

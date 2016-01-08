@@ -40,8 +40,6 @@ def nearby_food_descriptions(query):
     nearnesses = dict()
     query = query.strip()
 
-    good_words = ["raw"]
-    good_measurements = ["NLEA"]
     for food in search_food_descriptions(query):
         desc_parts = [part.strip() for part in food.long_desc.split(",")
                       if part is not ""]
@@ -53,12 +51,12 @@ def nearby_food_descriptions(query):
             weight -= 25
 
         # another heuristic, if there is an NLEA measurement its a common food
-        if any(["NLEA" in ms.description for ms in food.measurements]):
+        if any(['NLEA' in ms.description for ms in food.measurements]):
             score += 50
 
         # if there is "raw" in the desc, its more common hopefully
-        if any(["NLEA" in ms.description for ms in food.measurements]):
-            score += 25
+        if 'raw' in food.long_desc:
+            score += 50
 
         nearnesses[food] = score
 
@@ -77,11 +75,9 @@ def tag_raw_entry(raw_entry):
     lemmer = WordNetLemmatizer()
     tags = list()
     for token in tokenize(raw_entry.content):
-        print 'TOKEN:', token
         quantity = 1
         parts = re.split("\s+", token)
         parts = [lemmer.lemmatize(part) for part in parts]
-        print "parts:", parts
         for i, part in enumerate(parts):
             if re.match(r'[0-9]*\.*[0-9]', part) is not None:
                 try:
@@ -91,7 +87,6 @@ def tag_raw_entry(raw_entry):
                     pass
 
         token = ' '.join(parts)
-        print 'token', token
         best_fd = FoodShort.get_food(token, raw_entry.user)
         if best_fd:
             measurement = best_fd.best_measurement()

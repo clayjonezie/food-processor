@@ -32,6 +32,10 @@
         {% block menu_left %}
         <ul>
             <li style="display:inline"><a href="{{ url_for('main.index') }}">home</a></li>
+            {% if current_user.is_authenticated %}
+                | <li style="display:inline"><a href="{{ url_for('main.goals') }}">goals</a></li>
+                | <li style="display:inline"><a href="{{ url_for('main.create_food') }}">manually add food</a></li>
+            {% endif %}
         </ul>
         {% endblock %}
       </div>

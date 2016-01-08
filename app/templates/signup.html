@@ -4,7 +4,10 @@
 {% block title %}singup{% endblock %}
 
 {% block my_content %}
-<h3>sing up</h3>
+<h3>sign up</h3>
+<p>Please note there is not yet any functionality to verify your email or reset your password. 
+Please double check your email is entered correctly. If you need to reset your password, please email me.
+My email can be found on the <a href="{{ url_for('main.contact') }}">contact</a> page.
 <form action="{{ url_for('main.signup') }}" method="post">
   {{ wtf.quick_form(form) }}
 </form>

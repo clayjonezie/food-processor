@@ -7,6 +7,13 @@ from datetime import datetime
 class ModelsTest(unittest.TestCase):
 
     def setUp(self):
+        print 'setup'
+
+        test_user = User.query.filter(User.email=='test@test.com').first()
+        if test_user is not None:
+            db.session.delete(test_user)
+            db.session.commit()
+
         user = User()
         user.email = 'test@test.com'
         user.password = 'test_password'
@@ -31,12 +38,14 @@ class ModelsTest(unittest.TestCase):
         tags = [Tag(re, 0, 'apple', apple_short, apple, 1, 100, 'g', apple_large),
                 Tag(re, 10, 'orange', orange_short, orange, 1, 114, 'g', orange_size)]
 
+        self.tags = tags
+
         db.session.add_all(tags)
         db.session.commit()
 
 
     def tearDown(self):
-        print 'tear down'
+        [db.session.delete(tag) for tag in self.tags]
         db.session.delete(self.test_user)
         db.session.commit()
 
@@ -47,4 +56,9 @@ class ModelsTest(unittest.TestCase):
 
         self.assertEqual(self.test_user.email, 'test@test.com')
         self.assertTrue(self.test_user.verify_password('test_password'))
+
+
+    def test_sum_tags(self):
+        nuts_sum = FoodDescription.sum_nutrients(self.tags)
+        print nuts_sum
 

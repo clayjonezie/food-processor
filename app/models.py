@@ -328,6 +328,7 @@ class FoodDescription(db.Model):
 
         return self
 
+
     @staticmethod
     def sum_nutrients(tags, group=1):
         """
