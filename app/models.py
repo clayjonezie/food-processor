@@ -125,6 +125,13 @@ def get_day_goals(user, day=None):
     return goals
 
 
+food_description_owner_table = db.Table('food_owners', db.metadata, 
+        db.Column('food_description_id', db.Integer, 
+            db.ForeignKey('food_descriptions.id')),
+        db.Column('user_id', db.Integer, 
+            db.ForeignKey('users.id')))
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -135,6 +142,9 @@ class User(UserMixin, db.Model):
         'RawEntry', backref='user', order_by='desc(RawEntry.at)')
     short_preferences = db.relationship('ShortPreference', backref='user')
     nutrient_goals = db.relationship('NutrientGoal', backref='user')
+    foods = db.relationship('FoodDescription', 
+            secondary=food_description_owner_table, 
+            back_populates='owners')
 
     @property
     def password(self):
@@ -254,6 +264,8 @@ class FoodDescription(db.Model):
                                    backref='food_description')
     nutrients = db.relationship('NutrientData',
                                 backref='food_description')
+    owners = db.relationship('User', secondary=food_description_owner_table,
+            back_populates='foods')
 
     def __repr__(self):
         return "<FoodDescription: %s>" % self.long_desc

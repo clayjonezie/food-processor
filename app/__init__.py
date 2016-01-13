@@ -32,7 +32,7 @@ def create_app(config):
     bootstrap.init_app(app)
     moment.init_app(app)
     login_manager.session_protection = 'strong'
-    login_manager.login_view = 'login'
+    login_manager.login_view = 'main.login'
     login_manager.init_app(app)
 
     from views import main

@@ -19,8 +19,23 @@ def food(id):
 
 
 @main.route('/food/add', methods=['GET', 'POST'])
+@login_required
 def create_food():
     return render_template('create_food.html')
+
+
+@main.route('/food/edit/<int:foodid>', methods=['GET','POST'])
+@login_required
+def edit_food(foodid):
+    fef = FoodEditForm()
+    if foodid == 0:
+        # this is a "add food" form...
+        pass
+    else:
+        food = FoodDescription.query.get(foodid)
+        fef.populate(food)
+    return render_template('edit_food.html', 
+            food=food, fef=fef)
 
 
 @main.route('/food/search/<query>')
