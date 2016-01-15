@@ -9,12 +9,27 @@
 
   <form action="" method="post" class="form" role="form">
       {{ fef.submit() }}
+      {{ fef.csrf_token }}
       <table class="table table-bordered">
 
           {% for i in range(fef.measure_names|length) %}
           <tr>
-              <td>{{ fef.measure_names[i]() }}</td>
-              <td>{{ fef.measure_amounts[i]() }} (g)</td>
+              {{ fef.measure_ids[i]() }}
+              <td>{{ fef.measure_names[i]() }}
+              {% if fef.measure_names[i].errors %}
+                    {% for error in fef.measure_names[i].errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+              {% endif %} 
+              </td>
+              <td>{{ fef.measure_amounts[i]() }} (g)
+              {% if fef.measure_amounts[i].errors %}
+                    {% for error in fef.measure_amounts[i].errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+              {% endif %} 
+              
+              </td>
           </tr>
 
           {% endfor %}
@@ -22,10 +37,19 @@
       </table>
       <table class="table table-bordered">
 
-          {% for i in range(fef.nutrient_ids|length) %}
+          {% for i in range(fef.nutrient_data_ids|length) %}
           <tr>
-              <td>{{ fef.nutrient_ids[i].data }}</td>
-              <td>{{ fef.nutrient_amounts[i]() }}</td>
+              <td>{{ fef.nutrient_data_ids[i]() }}
+                  {{ fef.nutrient_names[i] }}
+              </td>
+              <td>{{ fef.nutrient_amounts[i]() }} ({{ fef.nutrient_units[i] }})
+              {% if fef.nutrient_amounts[i].errors %}
+                    {% for error in fef.nutrient_amounts[i].errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+              {% endif %} 
+              
+              </td>
           </tr>
 
           {% endfor %}

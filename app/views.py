@@ -33,9 +33,17 @@ def edit_food(foodid):
         pass
     else:
         food = FoodDescription.query.get(foodid)
-        fef.populate(food)
-    return render_template('edit_food.html', 
-            food=food, fef=fef)
+        if request.method=='POST':
+            if fef.validate():
+                fef.update_models()
+            else:
+                for field, errors in fef.errors.items():
+                    flash(errors)
+                
+        elif request.method=='GET':
+            fef.populate(food)
+
+    return render_template('edit_food.html', food=food, fef=fef)
 
 
 @main.route('/food/search/<query>')
