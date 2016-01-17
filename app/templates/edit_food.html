@@ -7,6 +7,9 @@
 {{ super() }}
 <script type="text/javascript">
 $(function() {
+    $(".delete_row").click(function() {
+        $(this).parent().parent().remove();
+    });
     $("#add-measure").click(function() {
         // get array of elements
         var max = 0;
@@ -53,6 +56,7 @@ $(function() {
               {% endif %} 
               
               </td>
+              <td><a class="delete_row">delete measure</a></td>
           </tr>
           {% endfor %}
           <tr><td colspan="100%"><center>
