@@ -65,10 +65,15 @@ class FoodEditForm(Form):
         """ updates the models for a submitted form"""
         for i in range(len(self.measure_ids)):
             id = self.measure_ids[i].data
+
+            if len(id) == 0:
+                ms = MeasurementWeight()
+            else:
+                ms = MeasurementWeight.query.get(id)
+
             name = self.measure_names[i].data
             amount = self.measure_amounts[i].data
 
-            ms = MeasurementWeight.query.get(id)
             ms.description = name
             ms.amount = amount
 

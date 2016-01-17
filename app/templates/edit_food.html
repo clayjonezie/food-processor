@@ -3,6 +3,29 @@
 
 {% block title %}edit - {{ food.long_desc }}{% endblock %}
 
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+$(function() {
+    $("#add-measure").click(function() {
+        // get array of elements
+        var max = 0;
+        $("input[id^='measure_ids']").map(function(i, e) {
+            var num = parseInt($(e).attr("id").split("-")[1]);
+            if (num > max)
+                max = num;
+        });
+        var num = max + 1; 
+        var new_row = '\
+<tr><input id="measure_ids-' + num + '" name="measure_ids-' + num + '" value="" type="hidden">\
+<td><input id="measure_names-' + num + '" name="measure_names-' + num + '" value="" type="text"></td>\
+<td><input id="measure_amounts-' + num + '" name="measure_amounts-' + num + '" value="" type="text"> (g)</td></tr>';
+        $('#measures tr:last').before(new_row);
+    });
+});
+</script>
+{% endblock %}
+
 
 {% block my_content %}
     {{ super() }}
@@ -10,7 +33,7 @@
   <form action="" method="post" class="form" role="form">
       {{ fef.submit() }}
       {{ fef.csrf_token }}
-      <table class="table table-bordered">
+      <table id="measures" class="table table-bordered">
 
           {% for i in range(fef.measure_names|length) %}
           <tr>
@@ -31,9 +54,10 @@
               
               </td>
           </tr>
-
           {% endfor %}
-
+          <tr><td colspan="100%"><center>
+                      <a id="add-measure">add another</a>
+          </center></td></tr>
       </table>
       <table class="table table-bordered">
 
