@@ -22,7 +22,9 @@ $(function() {
         var new_row = '\
 <tr><input id="measure_ids-' + num + '" name="measure_ids-' + num + '" value="" type="hidden">\
 <td><input id="measure_names-' + num + '" name="measure_names-' + num + '" value="" type="text"></td>\
-<td><input id="measure_amounts-' + num + '" name="measure_amounts-' + num + '" value="" type="text"> (g)</td></tr>';
+<td><input id="measure_amounts-' + num + '" name="measure_amounts-' + num + '" value="" type="text"> (g)</td></tr>\
+<td><a class="delete_row">delete measure</a></td>\
+';
         $('#measures tr:last').before(new_row);
     });
 });
@@ -36,6 +38,8 @@ $(function() {
   <form action="" method="post" class="form" role="form">
       {{ fef.submit() }}
       {{ fef.csrf_token }}
+      <h2>Name:</h2>
+      {{ fef.name() }}
       <table id="measures" class="table table-bordered">
 
           {% for i in range(fef.measure_names|length) %}

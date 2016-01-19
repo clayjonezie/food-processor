@@ -24,24 +24,26 @@ def create_food():
     return render_template('create_food.html')
 
 
-@main.route('/food/edit/<int:foodid>', methods=['GET','POST'])
+@main.route('/food/<int:id>/edit', methods=['GET','POST'])
 @login_required
-def edit_food(foodid):
+def edit_food(id):
     fef = FoodEditForm()
-    if foodid == 0:
-        # this is a "add food" form...
-        pass
+    if id == 0:
+        food = FoodDescription()
+        return redirect(url_for('main.edit_food', id=food.id))
     else:
-        food = FoodDescription.query.get(foodid)
-        if request.method=='POST':
-            if fef.validate():
-                fef.update_models()
-            else:
-                for field, errors in fef.errors.items():
-                    flash(errors)
-                
-        elif request.method=='GET':
-            fef.populate(food)
+        food = FoodDescription.query.get(id)
+    if request.method=='POST':
+        if fef.validate():
+            fef.update_models(food)
+        else:
+            for field, errors in fef.errors.items():
+                flash(errors)
+    elif request.method=='GET':
+        if len(food.measurements) == 0:
+            food.measurements.append(MeasurementWeight())
+        fef.populate(food)
+
 
     return render_template('edit_food.html', food=food, fef=fef)
 

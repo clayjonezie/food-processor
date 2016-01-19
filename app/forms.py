@@ -38,6 +38,7 @@ class SignupForm(Form):
 
 
 class FoodEditForm(Form):
+    name = StringField('Name', validators=[Required(), Length(1, 255)])
     measure_ids = FieldList(HiddenField('Measure Id'))
     measure_names = FieldList(StringField('Measure Name', 
         validators=[Required(), Length(1, 255)]))
@@ -61,21 +62,32 @@ class FoodEditForm(Form):
             self.nutrient_amounts.append_entry(nut_data.nutr_val)
 
 
-    def update_models(self):
+    def update_models(self, food):
         """ updates the models for a submitted form"""
+
+        food.long_desc = self.name.data
+
+        existing_measure_ids = set(map(lambda x: x.id, food.measurements))
+        received_measure_ids = set(map(lambda x: x.data, self.measure_ids))
+
+        print "existing", existing_measure_ids
+        print "received" , received_measure_ids
+
         for i in range(len(self.measure_ids)):
             id = self.measure_ids[i].data
 
             if len(id) == 0:
                 ms = MeasurementWeight()
+                ms.food_description = food
+                db.session.add(ms)
             else:
                 ms = MeasurementWeight.query.get(id)
 
             name = self.measure_names[i].data
-            amount = self.measure_amounts[i].data
+            weight = float(self.measure_amounts[i].data)
 
             ms.description = name
-            ms.amount = amount
+            ms.gram_weight = weight
 
         for i in range(len(self.nutrient_data_ids)):
             id = self.nutrient_data_ids[i].data

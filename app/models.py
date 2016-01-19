@@ -267,6 +267,20 @@ class FoodDescription(db.Model):
     owners = db.relationship('User', secondary=food_description_owner_table,
             back_populates='foods')
 
+    def __init__(self):
+        """ in __init__ we will create empty nutrient info (0.0) """
+        db.session.add(self)
+        db.session.commit()
+        nut_defs = NutrientDefinition.query.all()
+        for nd in nut_defs:
+            nut_data = NutrientData()
+            nut_data.nutr_val = 0.0
+            nut_data.nutr_no = nd.nutr_no
+            nut_data.ndb_no = self.id
+            db.session.add(nut_data)
+
+        db.session.commit()
+
     def __repr__(self):
         return "<FoodDescription: %s>" % self.long_desc
 
