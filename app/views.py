@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort, flash, redirect, request, url_for
+from flask import Blueprint, render_template, abort, flash, redirect, request, url_for, jsonify
 from flask.ext.login import login_user, logout_user, login_required, current_user
 
 from forms import *
@@ -53,6 +53,21 @@ def food_search(query):
     results = nlp.nearby_food_descriptions(query) + \
         nlp.search_food_descriptions(query)
     return render_template('food_search.html', results=results, query=query)
+
+
+@main.route('/food/all.json')
+def all_food_json():
+    foods = FoodDescription.query.all()
+    json_foods = []
+    for f in foods:
+        json_foods.append(f.long_desc)
+
+    return jsonify(foods=json_foods)
+
+
+@main.route('/canvas')
+def canvas():
+    return render_template("canvas.html")
 
 
 @main.route('/', methods=['GET', 'POST'])

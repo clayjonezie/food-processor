@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}canvas{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="/static/js/typeahead.bundle.min.js"></script>
+<script type="text/javascript">
+
+$(function() {
+    var engine = new Bloodhound({
+        local: ['apple', 'foood', 'bananana'],
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        datumTokenizer: Bloodhound.tokenizers.whitespace,
+        prefetch: {
+            url: '/food/all.json',
+            transform: function(response) { console.log(response); return response.foods }
+        }
+    });
+
+    $('.typeahead').typeahead({
+        minLength: 1,
+        highlight: true
+    }, {
+        name: 'animals',
+        limit: 10,
+        source: engine
+    });
+
+    $('.typeahead').bind('typeahead:select', function(event, suggestion) {
+        $('ul.entry-items').append('<li>' + suggestion + '</li>');
+        $('input.typeahead').typeahead('val', '');
+    });
+
+    console.log("here!");
+});
+
+</script>
+{% endblock %}
+
+{% block my_content %}
+{{ super() }}
+
+<ul class="entry-items">
+</ul>
+
+<input class="typeahead" type="text" size="100%" />
+
+{% endblock %}
