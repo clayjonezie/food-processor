@@ -6,7 +6,9 @@ import requests
 import re
 
 from ..models import FoodDescription, FoodShort, Tag
+from . import fpdb
 
+lemmer = WordNetLemmatizer()
 
 def tokenize(text):
     """
@@ -72,7 +74,6 @@ def nearby_food_descriptions(query):
 
 
 def tag_raw_entry(raw_entry):
-    lemmer = WordNetLemmatizer()
     tags = list()
     for token in tokenize(raw_entry.content):
         quantity = 1
@@ -116,3 +117,51 @@ def ask_google_for_ndb_no(query):
     if resp is None:
         return None
     return int(resp.group(0).replace("qlookup%3D", ""))
+
+
+def realtime_parse(query):
+    """ 
+    returns a dictionary of parsed entry 
+    dictionary has food item, quantity, and measure
+    """
+    parts = re.split("\s+", query)
+    parts = [lemmer.lemmatize(part) for part in parts]
+    quantity, parts = get_quantity(parts)
+
+    item = FoodDescription.query.get(9040)
+    measure = item.measurements[0]
+
+    return {'item': {'id': item.id, 'desc': item.long_desc},
+            'measure': {'id': measure.id, 'desc': measure.description},
+            'quantity': quantity}
+
+def get_quantity(parts):
+    """ returns a tuple (quantity, parts without quantity) """
+    quantity = 1
+    for i, part in enumerate(parts):
+        if re.match(r'[0-9]*\.*[0-9]', part) is not None:
+            try:
+                quantity = float(fractions.Fraction(part))
+                del parts[i]
+            except:
+                pass
+    
+    return (quantity, parts)
+
+def realtime_parse_autocomplete(db, query):
+    parts = re.split("\s+", query)
+    parts = [lemmer.lemmatize(part) for part in parts]
+    quantity, parts = get_quantity(parts)
+
+    db_query = ' '.join(parts)
+    results = fpdb.desc_fts(db, db_query)
+
+    res = []
+    for r in results:
+        res.append({'value': str(quantity) + " x " + r.long_desc, 'data': 'adsf'})
+
+
+    return {"suggestions": res}
+
+
+

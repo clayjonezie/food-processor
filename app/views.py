@@ -264,6 +264,17 @@ def login():
     return render_template('login.html', form=form)
 
 
+@main.route('/parse', methods=['POST', 'GET'])
+def parse():
+    query = request.form['query']
+    return jsonify(nlp.realtime_parse(query))
+
+@main.route('/parse-autocomplete', methods=['POST', 'GET'])
+def parse_autocomplete():
+    query = request.form['query']
+    return jsonify(nlp.realtime_parse_autocomplete(db, query))
+
+
 @main.route('/logout')
 @login_required
 def logout():

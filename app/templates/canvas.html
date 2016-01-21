@@ -5,6 +5,26 @@
 {% block scripts %}
 {{ super() }}
 <script type="text/javascript" src="/static/js/typeahead.bundle.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.autocomplete.min.js"></script>
+<script type="text/javascript">
+
+$(function() {
+    $('input.realtime-parse').autocomplete({
+        serviceUrl: '/parse-autocomplete',
+        type: 'POST',
+        dataType: 'json',
+        onSearchStart: function() {
+            console.log('search start');
+        },
+        onSearchComplete: function (query, suggestions) {
+            console.log('search complete'); 
+            console.log(suggestions);
+        },
+        noCache: true
+    });
+});
+
+</script>
 <script type="text/javascript">
 
 $(function() {
@@ -14,7 +34,7 @@ $(function() {
         datumTokenizer: Bloodhound.tokenizers.whitespace,
         prefetch: {
             url: '/food/all.json',
-            transform: function(response) { console.log(response); return response.foods }
+            transform: function(response) { return response.foods }
         }
     });
 
@@ -32,7 +52,6 @@ $(function() {
         $('input.typeahead').typeahead('val', '');
     });
 
-    console.log("here!");
 });
 
 </script>
@@ -40,10 +59,20 @@ $(function() {
 
 {% block my_content %}
 {{ super() }}
+<div id="realtime-parse" style="border: 1px solid black; padding: 15px; margin: 15px">
+<h2>Realtime Parse</h2>
+<ul class="rtp-items">
+</ul>
 
+<input class="realtime-parse" type="text" size="100%" />
+</div>
+
+<div id="typeahead" style="border: 1px solid black; padding: 15px; margin: 15px">
+<h2>Typeahead</h2>
 <ul class="entry-items">
 </ul>
 
 <input class="typeahead" type="text" size="100%" />
+</div>
 
 {% endblock %}
