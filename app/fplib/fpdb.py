@@ -37,9 +37,15 @@ def save_bad_words(db):
 
 
 def desc_fts(db, word, limit=25):
-    results = db.session.execute("SELECT id, long_desc, MATCH (long_desc) \
+#    results = db.session.execute("SELECT *, MATCH (common_name) \
+#            AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
+#            FROM food_descriptions WHERE MATCH \
+#            (common_name) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
+#            LIMIT " + str(limit) + ";")
+    results = FoodDescription.query.from_statement("SELECT *, MATCH (common_name) \
             AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
             FROM food_descriptions WHERE MATCH \
-            (long_desc) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
+            (common_name) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
             LIMIT " + str(limit) + ";")
-    return results.fetchall()
+
+    return results.all()

@@ -2,6 +2,20 @@
 
 {% block title %}canvas{% endblock %}
 
+{% block head %}
+{{ super() }}
+
+<style type="text/css">
+.autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
+.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+.autocomplete-selected { background: #F0F0F0; }
+.autocomplete-suggestions strong { font-weight: normal; color: #3399FF; }
+.autocomplete-group { padding: 2px 5px; }
+.autocomplete-group strong { display: block; border-bottom: 1px solid #000; }
+</style>
+
+{% endblock %}
+
 {% block scripts %}
 {{ super() }}
 <script type="text/javascript" src="/static/js/typeahead.bundle.min.js"></script>
@@ -19,6 +33,13 @@ $(function() {
         onSearchComplete: function (query, suggestions) {
             console.log('search complete'); 
             console.log(suggestions);
+        },
+        onSelect: function(suggestion) {
+            console.log(suggestion);
+            $('ul.rtp-entry-items').append('<li>' + suggestion.value + '</li>');
+            $('input.realtime-parse').autocomplete('clear');
+            $('input.realtime-parse').val('');
+            $('input.realtime-parse').focus();
         },
         noCache: true
     });
@@ -61,6 +82,8 @@ $(function() {
 {{ super() }}
 <div id="realtime-parse" style="border: 1px solid black; padding: 15px; margin: 15px">
 <h2>Realtime Parse</h2>
+<ul class="rtp-entry-items">
+</ul>
 <ul class="rtp-items">
 </ul>
 
