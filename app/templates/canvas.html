@@ -18,8 +18,8 @@
 
 {% block scripts %}
 {{ super() }}
-<script type="text/javascript" src="/static/js/typeahead.bundle.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.autocomplete.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='typeahead.bundle.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='jquery.autocomplete.min.js') }}"></script>
 <script type="text/javascript">
 
 $(function() {
