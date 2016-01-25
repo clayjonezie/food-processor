@@ -154,10 +154,12 @@ def realtime_parse_autocomplete(db, query):
     quantity, parts = get_quantity(parts)
 
     db_query = ' '.join(parts)
-    results = fpdb.desc_fts(db, db_query)
+    results = fpdb.desc_fts(db, db_query, 5)
 
     res = []
     for r in results:
+# 	measurement_descs = [ms.description for ms in r.measurements]
+# 	for ms in measurement_descs:
         for ms in r.measurements:
             res.append({'value': str(quantity) + " x " + r.long_desc + " (" + ms.description + ")", 'data': 'adsf'})
 

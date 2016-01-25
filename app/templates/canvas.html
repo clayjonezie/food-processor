@@ -27,6 +27,7 @@ $(function() {
         serviceUrl: '{{ url_for('main.parse_autocomplete') }}',
         type: 'POST',
         dataType: 'json',
+	deferRequestBy: 500,
         onSearchStart: function() {
             console.log('search start');
         },

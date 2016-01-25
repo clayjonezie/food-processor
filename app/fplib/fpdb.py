@@ -37,11 +37,6 @@ def save_bad_words(db):
 
 
 def desc_fts(db, word, limit=25):
-#    results = db.session.execute("SELECT *, MATCH (common_name) \
-#            AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
-#            FROM food_descriptions WHERE MATCH \
-#            (common_name) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
-#            LIMIT " + str(limit) + ";")
     results = FoodDescription.query.from_statement("SELECT *, MATCH (common_name) \
             AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
             FROM food_descriptions WHERE MATCH \
@@ -49,3 +44,11 @@ def desc_fts(db, word, limit=25):
             LIMIT " + str(limit) + ";")
 
     return results.all()
+
+def measure_desc_fts(db, word, food, limit=25):
+    results = WeightMeasurement.query.from_statement("SELECT *, MATCH (description) \
+            AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
+            FROM measurement_weights WHERE MATCH \
+            (description) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
+            AND ndb_no=" + str(food.id) + "\
+            LIMIT " + str(limit) + ";")
