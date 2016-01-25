@@ -161,6 +161,6 @@ def realtime_parse_autocomplete(db, query):
         for ms in r.measurements:
             res.append({'value': str(quantity) + " x " + r.long_desc + " (" + ms.description + ")", 'data': 'adsf'})
 
-   return {"suggestions": res}
+    return {"suggestions": res}
 
 
