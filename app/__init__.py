@@ -23,6 +23,7 @@ def create_app(config):
     """
     app.config["SQLALCHEMY_DATABASE_URI"] = keys.db_uri
     app.config["DEBUG"] = True
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.secret_key = 'dogfood'
 
     bootstrap = Bootstrap()

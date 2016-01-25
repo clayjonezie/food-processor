@@ -1,53 +1,11 @@
-Cheetah==2.4.4
-Flask==0.10.1
-Flask-Bcrypt==0.6.2
-Flask-Bootstrap==3.3.5.6
-Flask-Login==0.3.1
-Flask-Migrate==1.6.0
-Flask-Moment==0.5.1
-Flask-SQLAlchemy==2.0
-Flask-Script==2.0.5
-Flask-WTF==0.12
-Jinja2==2.8
-Landscape-Client==14.01
-Mako==1.0.2
-MarkupSafe==0.23
-PAM==0.4.2
-PyYAML==3.10
-SQLAlchemy==1.0.6
-Twisted-Core==13.2.0
-WTForms==2.0.2
-Werkzeug==0.10.4
-alembic==0.8.2
-apt-xapian-index==0.45
-argparse==1.2.1
-chardet==2.0.1
-cloud-init==0.7.5
-colorama==0.2.5
-configobj==4.7.2
-dominate==2.1.16
-html5lib==0.999
-itsdangerous==0.24
-jsonpatch==1.3
-jsonpointer==1.0
-nltk==3.0.5
-oauth==1.0.1
-oauthlib==1.0.3
-prettytable==0.7.2
-pyOpenSSL==0.13
-pyserial==2.6
-python-apt==0.9.3.5
-python-bcrypt==0.3.1
-python-dateutil==1.5
-python-debian==0.1.21-nmu2ubuntu2
-python-editor==0.4
-requests==2.7.0
-requests-oauthlib==0.5.0
-six==1.9.0
-ssh-import-id==3.21
-tweepy==3.4.0
-urllib3==1.7.1
-virtualenv==13.1.0
-wheel==0.24.0
-wsgiref==0.1.2
-zope.interface==4.0.5
+Flask == 0.10.1
+Flask_WTF == 0.12
+fuzzywuzzy == 0.8.0
+nltk == 3.1
+requests == 2.8.1
+SQLAlchemy == 1.0.9
+tweepy == 3.4.0
+Werkzeug == 0.10.4
+WTForms == 2.0.2
+python_dateutil == 2.4.2
+Unidecode == 0.04.19

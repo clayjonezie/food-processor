@@ -24,7 +24,7 @@
 
 $(function() {
     $('input.realtime-parse').autocomplete({
-        serviceUrl: '/parse-autocomplete',
+        serviceUrl: '{{ url_for('main.parse_autocomplete') }}',
         type: 'POST',
         dataType: 'json',
         onSearchStart: function() {
@@ -54,7 +54,7 @@ $(function() {
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         datumTokenizer: Bloodhound.tokenizers.whitespace,
         prefetch: {
-            url: '/food/all.json',
+            url: '{{ url_for('main.all_food_json') }}',
             transform: function(response) { return response.foods }
         }
     });
