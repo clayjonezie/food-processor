@@ -12,8 +12,6 @@ $(function() {
             console.log(suggestions);
         },
         onSelect: function(suggestion) {
-            console.log(suggestion);
-            $('ul.rtp-entry-items').append('<li>' + suggestion.value + '</li>');
             $('input.realtime-parse').autocomplete('clear');
             $('input.realtime-parse').val('');
             $('input.realtime-parse').focus();
@@ -22,16 +20,25 @@ $(function() {
             var $food_id_input = $('<input type="hidden" />');
             $food_id_input.attr('name', 'food_ids-' + next);
             $food_id_input.attr('value', suggestion.data['food-id']);
-            $("ul#food_ids").append($food_id_input);
             var $measure_id_input = $('<input type="hidden" />');
             $measure_id_input.attr('name', 'measure_ids-' + next);
             $measure_id_input.attr('value', suggestion.data['measure-id']);
-            $("ul#measure_ids").append($measure_id_input);
             var $quantity = $('<input type="hidden" />');
             $quantity.attr('name', 'quantities-' + next);
             $quantity.attr('value', suggestion.data['quantity']);
-            $("ul#quantities").append($quantity);
+
+            var $new_li = $('<li></li>');
+            $new_li.append('[<a class="delete_row">x</a>] ');
+            $new_li.append(suggestion.value);
+            $new_li.append($food_id_input);
+            $new_li.append($measure_id_input);
+            $new_li.append($quantity);
+            $('ul.rtp-entry-items').append($new_li);
+
+            $(".delete_row").click(function() {
+                $(this).parent().remove();
+            });
         },
-        noCache: true
+    noCache: true
     });
 });
