@@ -9,7 +9,7 @@ from flask.ext.moment import Moment
 from flask_wtf.csrf import CsrfProtect
 from fplib import keys
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../static")
 db = SQLAlchemy()
 my_bcrypt = Bcrypt()
 moment = Moment()

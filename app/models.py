@@ -26,6 +26,8 @@ class RawEntry(db.Model):
     tags = db.relationship('Tag', backref='raw_entry')
 
     def __init__(self, content=None, at=None, user=None):
+        if at is None:
+            at = datetime.now()
         self.content = content
         self.at = at
         self.user = user
@@ -480,19 +482,6 @@ class Tag(db.Model):
 
     def __repr__(self):
         return '<Tag: %s %f %s>' % (str(self.id), self.count or 0, self.text)
-
-
-    def __init__(self, raw_entry, pos, text, food_short,
-                 food_description, count, size, size_units,
-                 measurement_weight):
-        self.raw_entry = raw_entry
-        self.pos = pos
-        self.food_short = food_short
-        self.food_description = food_description
-        self.count = count
-        self.size = size
-        self.size_units
-        self.measurement_weight = measurement_weight
 
 
     @staticmethod

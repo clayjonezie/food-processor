@@ -1,7 +1,7 @@
 from nltk.stem import WordNetLemmatizer
 import fractions
 import operator
-from fuzzywuzzy import fuzz
+from fuzzywuzzy import fuzz, process
 import requests
 import re
 
@@ -154,14 +154,17 @@ def realtime_parse_autocomplete(db, query):
     quantity, parts = get_quantity(parts)
 
     db_query = ' '.join(parts)
-    results = fpdb.desc_fts(db, db_query, 5)
+    foods = fpdb.desc_fts(db, db_query, 15)
 
     res = []
-    for r in results:
-# 	measurement_descs = [ms.description for ms in r.measurements]
-# 	for ms in measurement_descs:
-        for ms in r.measurements:
-            res.append({'value': str(quantity) + " x " + r.long_desc + " (" + ms.description + ")", 'data': 'adsf'})
+    for f in foods:
+        for ms in f.measurements:
+            res.append({'value': str(quantity) + " " +  ms.description + " x " + f.long_desc,
+                        'data': {
+                            'food-id': f.id,
+                            'measure-id': ms.id,
+                            'quantity': quantity
+                            }})
 
     return {"suggestions": res}
 

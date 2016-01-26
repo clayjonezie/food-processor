@@ -3,6 +3,12 @@
 
 {% block title %}home{% endblock %}
 
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="{{ url_for('static', filename='jquery.autocomplete.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='rt-entry.js') }}"></script>
+{% endblock %}
+
 {% block my_content %}
     {{ super() }}
     <div style="margin-bottom: 20px">
@@ -10,12 +16,16 @@
         <form method="post" action="{{ url_for('main.create_raw_entry') }}">
             <div class="row">
                 <div class="col-md-10">
-                    {{ create_form.content(class_='form-control') }}
+                    <ul class="rtp-entry-items"></ul>
+                    {{ rt_form.food_ids() }}
+                    {{ rt_form.measure_ids() }}
+                    {{ rt_form.quantities() }}
+                    {{ rt_form.entry(class_='form-control realtime-parse') }}
                 </div>
                 <div class="col-md-2">
-                    {{ create_form.submit(class_='btn btn-default') }}
+                    {{ rt_form.submit(class_='btn btn-default') }}
                 </div>
-                {{ create_form.csrf_token() }}
+                {{ rt_form.csrf_token() }}
             </div>
         </form>
     </div>
@@ -28,7 +38,8 @@
 
         .chart div {
             width: 100%;
-            font: 10px sans-serif;
+            height: 17px;
+            font: 14px sans-serif;
             background-color: steelblue;
             text-align: left;
             padding: 3px;
@@ -37,6 +48,9 @@
             margin: 1px;
             color: black;
         }
+        .chart p {
+            width: 100%;
+        }
 
     </style>
 
@@ -44,7 +58,9 @@
     {%  if day_goals|length != 0 %}
         <div class="chart">
             {% for nut in day_goals %}
-                <div style="width: {{ nut[1]*100 }}%;">{{ nut[0].desc }}: {{ nut[2] }}/{{ nut[3] }}{{ nut[0].unit }}</div>
+                <p> {{ nut[0].desc }}: {{ nut[2] }}/{{ nut[3] }}{{ nut[0].unit }}</p>
+                <div style="width: {{ nut[1]*100 }}%;">
+                </div>
             {% endfor %}
         </div>
     {% endif %}

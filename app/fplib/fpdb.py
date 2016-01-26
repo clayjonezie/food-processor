@@ -4,6 +4,9 @@ import datetime
 import dateutil.parser
 from ..models import *
 import twitter
+from sqlalchemy.sql import text
+from fuzzywuzzy import process
+
 
 
 def me():
@@ -36,19 +39,23 @@ def save_bad_words(db):
     db.session.commit()
 
 
-def desc_fts(db, word, limit=25):
-    results = FoodDescription.query.from_statement("SELECT *, MATCH (common_name) \
+def desc_fts(db, word, limit=25, thresh=60):
+    results = FoodDescription.query.from_statement(text("SELECT *, MATCH (common_name) \
             AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
             FROM food_descriptions WHERE MATCH \
             (common_name) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
-            LIMIT " + str(limit) + ";")
+            LIMIT " + str(limit) + ";"))
+    
+    all_results = results.all()
+    processed = process.extract(word, all_results, processor=lambda x: x.common_name, limit=len(all_results))
+    return [p[0] for p in processed if p[1] >= thresh]
 
-    return results.all()
 
-def measure_desc_fts(db, word, food, limit=25):
-    results = WeightMeasurement.query.from_statement("SELECT *, MATCH (description) \
+def measure_desc_fts(db, word, food, limit=5):
+    results = MeasurementWeight.query.from_statement(text("SELECT *, MATCH (description) \
             AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE) AS score\
             FROM measurement_weights WHERE MATCH \
             (description) AGAINST ('" + word + "' IN NATURAL LANGUAGE MODE)\
             AND ndb_no=" + str(food.id) + "\
-            LIMIT " + str(limit) + ";")
+            LIMIT " + str(limit) + ";"))
+    return results.all()

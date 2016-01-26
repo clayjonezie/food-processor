@@ -55,16 +55,6 @@ def food_search(query):
     return render_template('food_search.html', results=results, query=query)
 
 
-@main.route('/food/all.json')
-def all_food_json():
-    foods = FoodDescription.query.all()
-    json_foods = []
-    for f in foods:
-        json_foods.append(f.long_desc)
-
-    return jsonify(foods=json_foods)
-
-
 @main.route('/canvas')
 def canvas():
     return render_template("canvas.html")
@@ -84,30 +74,20 @@ def contact():
 
 
 def home():
-    create_form = CreateRawEntryForm()
-    create_form.content.data = ''
+    rt_form = RealtimeParseForm()
+    rt_form.entry.data = ''
+
     week_entries = get_week_hist(current_user)
     week = get_week_days(current_user)
     return render_template('home.html', week=zip(week, week_entries),
-                           create_form=create_form, day_goals=get_day_goals(current_user))
+                           rt_form=rt_form, day_goals=get_day_goals(current_user))
 
 
 @main.route('/raw_entries/add', methods=['POST'])
 @login_required
 def create_raw_entry():
-    create_form = CreateRawEntryForm()
-    if create_form.validate_on_submit():
-        entry = RawEntry(content=create_form.content.data,
-                         at=datetime.utcnow())
-        entry.user = current_user
-        tags = nlp.tag_raw_entry(entry)
-        if len(tags) > 0:
-            db.session.add(entry)
-            db.session.add_all(tags)
-            db.session.commit()
-            flash('added %s' % create_form.content.data)
-        else:
-            flash('there was nothing parseable there :( this is an issue!')
+    rt_form = RealtimeParseForm()
+    rt_form.add_entry(current_user)
     return redirect(url_for('main.index'))
 
 
