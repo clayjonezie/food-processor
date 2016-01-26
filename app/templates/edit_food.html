@@ -19,13 +19,17 @@ $(function() {
                 max = num;
         });
         var num = max + 1; 
+        // there is a way cleaner way to do this with jquery
         var new_row = '\
 <tr><input id="measure_ids-' + num + '" name="measure_ids-' + num + '" value="" type="hidden">\
 <td><input id="measure_names-' + num + '" name="measure_names-' + num + '" value="" type="text"></td>\
-<td><input id="measure_amounts-' + num + '" name="measure_amounts-' + num + '" value="" type="text"> (g)</td></tr>\
-<td><a class="delete_row">delete measure</a></td>\
+<td><input id="measure_amounts-' + num + '" name="measure_amounts-' + num + '" value="" type="text"> (g)</td>\
+<td><a class="delete_row">delete measure</a></td></tr>\
 ';
         $('#measures tr:last').before(new_row);
+        $(".delete_row").click(function() {
+            $(this).parent().parent().remove();
+        });
     });
 });
 </script>
@@ -38,10 +42,14 @@ $(function() {
   <form action="" method="post" class="form" role="form">
       {{ fef.submit() }}
       {{ fef.csrf_token }}
-      <h2>Name:</h2>
-      {{ fef.name() }}
+      <h2>Name:
+          {{ fef.name(style="width: 74%") }}</h2>
       <table id="measures" class="table table-bordered">
-
+        <tr>
+            <th>Name of Measure</th>
+            <th>Weight (grams) of Measure</th>
+            <th></th>
+        </tr>
           {% for i in range(fef.measure_names|length) %}
           <tr>
               {{ fef.measure_ids[i]() }}
@@ -68,6 +76,10 @@ $(function() {
           </center></td></tr>
       </table>
       <table class="table table-bordered">
+        <tr>
+            <th>Nutrient Name</th>
+            <th>Nutrient Amount in 100g</th>
+        </tr>
 
           {% for i in range(fef.nutrient_data_ids|length) %}
           <tr>
