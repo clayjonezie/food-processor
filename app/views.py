@@ -197,7 +197,17 @@ def create_goal():
         nutrient = NutrientDefinition.query.get(
             int(request.form.get('nutrient_id')))
         amount = request.form.get('amount')
-        goal = NutrientGoal(amount, current_user, nutrient)
+
+        existing_goal = NutrientGoal.query.filter(
+                NutrientGoal.nutrient_id==int(request.form.get('nutrient_id')),
+                NutrientGoal.user==current_user).first()
+
+        if existing_goal is None:
+            goal = NutrientGoal(amount, current_user, nutrient)
+        else:
+            goal = existing_goal
+            goal.amount = amount
+
         db.session.add(goal)
         db.session.commit()
     return redirect(url_for('main.goals'))
