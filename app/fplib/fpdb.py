@@ -3,7 +3,6 @@ import sys
 import datetime
 import dateutil.parser
 from ..models import *
-import twitter
 from sqlalchemy.sql import text
 from fuzzywuzzy import process
 
@@ -18,14 +17,6 @@ def print_tags():
     """ prints every tag in the system """
     for tag in Tag.query.all():
         print tag.__repr__()
-
-
-def save_tweets(db, user, screen_name):
-    tweets = twitter.download_tweets(screen_name)
-    raw_entries = [RawEntry().from_tweet(tweet, user) for tweet in tweets]
-    db.session.add_all(raw_entries)
-    db.session.commit()
-    return len(raw_entries)
 
 
 def save_bad_words(db):
