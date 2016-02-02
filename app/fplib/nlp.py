@@ -169,3 +169,19 @@ def realtime_parse_autocomplete(db, query):
     return {"suggestions": res}
 
 
+def autocomplete_foods(db, query):
+    parts = re.split("\s+", query)
+    parts = [lemmer.lemmatize(part) for part in parts]
+
+    db_query = ' '.join(parts)
+    foods = fpdb.desc_fts(db, db_query, 15)
+
+    res = []
+    for f in foods:
+        for ms in f.measurements:
+            res.append({'value': f.long_desc,
+                        'data': {
+                            'food-id': f.id
+                        }})
+
+    return {"suggestions": res}

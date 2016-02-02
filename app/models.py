@@ -196,34 +196,36 @@ class User(UserMixin, db.Model):
 
         # get all the foods this person consumes, and a count with it from sql
 
-        foods = db.session.query(FoodDescription, db.func.count(FoodDescription.id))\
-            .outerjoin(Tag).outerjoin(RawEntry).outerjoin(User).filter(User.id == self.id)\
-            .group_by(FoodDescription.id)\
-            .order_by(db.func.count(FoodDescription.id).desc()).limit(lim).all()
+        conn = db.session.connection()
+        foods = conn.execute(db.text("select food_descriptions.id, "
+                                     "    food_descriptions.long_desc,"
+                                     "    count(food_descriptions.id) as cnt "
+                                     "FROM food_descriptions "
+                                     "INNER JOIN tags "
+                                     "    ON tags.food_description_id = food_descriptions.id "
+                                     "INNER JOIN raw_entries "
+                                     "    ON raw_entries.id = tags.raw_entry_id "
+                                     "INNER JOIN users "
+                                     "    ON users.id = raw_entries.user_id "
+                                     "WHERE users.id = :uid "
+                                     "GROUP BY food_descriptions.id "
+                                     "ORDER BY cnt DESC limit :limit;"),
+                             uid=self.id, limit=lim).fetchall()
+
 
         # this should be pushed to sql. finds the most common count and measure for each
-        rets = []
-        for food, count in foods:
-            count = db.session.query(Tag.count, db.func.count(Tag.id))\
-                .outerjoin(RawEntry).outerjoin(User)\
-                .filter(Tag.food_description_id == food.id)\
-                .filter(User.id == self.id).group_by(Tag.count)\
-                .order_by(db.func.count(Tag.id).desc()).limit(1).first()
-            best_count = count[0]
+        results = []
+        for foodid, food_desc, food_count in foods:
+            (count, measure_id, measure_desc) = db.session.query(Tag.count,
+                                                                 Tag.measurement_weight_id,
+                                                                 MeasurementWeight.description)\
+                .outerjoin(RawEntry).outerjoin(User).outerjoin(MeasurementWeight)\
+                .filter(Tag.food_description_id == foodid)\
+                .filter(User.id == self.id).order_by(RawEntry.at.desc()).first()
 
-            measure = db.session.query(Tag.measurement_weight_id, db.func.count(Tag.id))\
-                .outerjoin(RawEntry).outerjoin(User)\
-                .filter(Tag.food_description_id == food.id) \
-                .filter(User.id == self.id).group_by(Tag.measurement_weight_id) \
-                .order_by(db.func.count(Tag.id).desc()).limit(1).first()
+            results.append((foodid, food_desc, count, measure_id, measure_desc))
 
-            best_measure = None
-            if measure[0]:
-                best_measure = MeasurementWeight.query.get(measure[0])
-
-            rets.append((food, best_count, best_measure))
-
-        return rets
+        return results
 
 
     def __repr__(self):
@@ -474,7 +476,8 @@ class NutrientData(db.Model):
 
 
     def __repr__(self):
-        return '<NutrientData: %s: %s: %s>' % (self.food_description, self.nutrient, self.nutr_val)
+        return '<NutrientData: %s: %s: %s>' % (self.food_description,
+                                               self.nutrient, self.nutr_val)
 
 
     def _html_table_row(self):
@@ -521,17 +524,17 @@ class Tag(db.Model):
 
     def __repr__(self):
         return '<Tag: %s %f %s %s>' % (str(self.id), self.count or 0,
-                                    self.food_description.long_desc,
-                                    self.measurement.description)
+                                       self.food_description.long_desc,
+                                       self.measurement.description)
 
 
     @staticmethod
     def get_day(user, start):
         """ returns all tags from a day for a user """
         end = start + timedelta(days=1)
-        raw_entries = RawEntry.query.filter(RawEntry.user_id==user.id).\
-                filter(RawEntry.at >= start.isoformat()).\
-                filter(RawEntry.at <= end.isoformat()).all()
+        raw_entries = RawEntry.query.filter(RawEntry.user_id == user.id).\
+            filter(RawEntry.at >= start.isoformat()).\
+            filter(RawEntry.at <= end.isoformat()).all()
         tags = list()
         for re in raw_entries:
             for t in re.tags:

@@ -13,6 +13,24 @@
     {{ super() }}
     <div style="margin-bottom: 20px">
         <h4>What have you had to eat?</h4>
+    <div class="suggestions row">
+    <div class="col-md-12"
+        <h3>Suggestions</h3>
+            <ul class="suggestions">
+                {%  for s in suggestions %}
+                    <li><a class="add-suggestion"
+                       role="button"
+                       data-foodid="{{ s[0] }}"
+                       data-measureid="{{ s[3] }}"
+                       data-count="{{ s[2] }}">
+                        {{ s[2] }}
+                        {{ s[4] }} x
+                        {{ s[1] }}
+                    </a></li>
+                {%  endfor %}
+            </ul>
+    </div>
+    </div>
         <form method="post" action="{{ url_for('main.create_raw_entry') }}">
             <div class="row">
                 <div class="col-md-10">
@@ -21,13 +39,6 @@
                     {{ rt_form.measure_ids() }}
                     {{ rt_form.quantities() }}
                     {{ rt_form.entry(class_='form-control realtime-parse') }}
-                </div>
-                <div class="suggestions">
-                    {%  for s in suggestions %}
-                        {{ s[0] }},
-                        {{ s[1] }},
-                        {{ s[2] }}
-                    {%  endfor %}
                 </div>
                 <div class="col-md-2">
                     {{ rt_form.submit(class_='btn btn-default') }}

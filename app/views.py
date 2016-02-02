@@ -261,10 +261,17 @@ def parse():
     query = request.form['query']
     return jsonify(nlp.realtime_parse(query))
 
+
 @main.route('/parse-autocomplete', methods=['POST', 'GET'])
 def parse_autocomplete():
     query = request.form['query']
     return jsonify(nlp.realtime_parse_autocomplete(db, query))
+
+
+@main.route('/autocomplete-foods', methods=['POST', 'GET'])
+def autocomplete_foods():
+    query = request.form['query']
+    return jsonify(nlp.autocomplete_foods(db, query))
 
 
 @main.route('/logout')
