@@ -186,6 +186,45 @@ class User(UserMixin, db.Model):
         return goals
 
 
+    def get_suggestions(self, dt=None, lim=10):
+        '''
+        :param date: The datetime to get suggestions for
+        :return: a list of tags which are likely to be chosen
+        '''
+        if dt is None:
+            dt = datetime.now()
+
+        # get all the foods this person consumes, and a count with it from sql
+
+        foods = db.session.query(FoodDescription, db.func.count(FoodDescription.id))\
+            .outerjoin(Tag).outerjoin(RawEntry).outerjoin(User).filter(User.id == self.id)\
+            .group_by(FoodDescription.id)\
+            .order_by(db.func.count(FoodDescription.id).desc()).limit(lim).all()
+
+        # this should be pushed to sql. finds the most common count and measure for each
+        rets = []
+        for food, count in foods:
+            count = db.session.query(Tag.count, db.func.count(Tag.id))\
+                .outerjoin(RawEntry).outerjoin(User)\
+                .filter(Tag.food_description_id == food.id)\
+                .filter(User.id == self.id).group_by(Tag.count)\
+                .order_by(db.func.count(Tag.id).desc()).limit(1).first()
+            best_count = count[0]
+
+            measure = db.session.query(Tag.measurement_weight_id, db.func.count(Tag.id))\
+                .outerjoin(RawEntry).outerjoin(User)\
+                .filter(Tag.food_description_id == food.id) \
+                .filter(User.id == self.id).group_by(Tag.measurement_weight_id) \
+                .order_by(db.func.count(Tag.id).desc()).limit(1).first()
+
+            best_measure = None
+            if measure[0]:
+                best_measure = MeasurementWeight.query.get(measure[0])
+
+            rets.append((food, best_count, best_measure))
+
+        return rets
+
 
     def __repr__(self):
         return '<User: %s>' % self.email
@@ -481,7 +520,9 @@ class Tag(db.Model):
                 tag_id=self.id)
 
     def __repr__(self):
-        return '<Tag: %s %f %s>' % (str(self.id), self.count or 0, self.text)
+        return '<Tag: %s %f %s %s>' % (str(self.id), self.count or 0,
+                                    self.food_description.long_desc,
+                                    self.measurement.description)
 
 
     @staticmethod

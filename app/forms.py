@@ -60,7 +60,7 @@ class RealtimeParseForm(Form):
             tag = Tag()
             tag.count = quantity
             tag.food_description_id = food_id
-            tag.measurement_wight_id = measure_id
+            tag.measurement_weight_id = measure_id
             tag.raw_entry_id = new_re.id
             db.session.add(tag)
 

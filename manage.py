@@ -15,7 +15,7 @@ def make_shell_context():
     return dict(app=app,
                 db=db,
                 models=models,
-                me=models.User.query.get(1),
+                me=models.User.query.get(6),
                 apple=models.FoodDescription.query.get(9003))
 
 manager.add_command("shell", Shell(make_context=make_shell_context))

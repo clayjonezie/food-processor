@@ -79,8 +79,10 @@ def home():
 
     week_entries = get_week_hist(current_user)
     week = get_week_days(current_user)
+    suggestions = current_user.get_suggestions()
     return render_template('home.html', week=zip(week, week_entries),
-                           rt_form=rt_form, day_goals=get_day_goals(current_user))
+                           rt_form=rt_form, day_goals=get_day_goals(current_user),
+                           suggestions=suggestions)
 
 
 @main.route('/raw_entries/add', methods=['POST'])

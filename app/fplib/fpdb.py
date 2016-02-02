@@ -7,27 +7,15 @@ from sqlalchemy.sql import text
 from fuzzywuzzy import process
 
 
-
 def me():
     """ returns the first user (c@c.me) """
-    return User.query.get(0)
+    return User.query.get(6)
 
 
 def print_tags():
     """ prints every tag in the system """
     for tag in Tag.query.all():
         print tag.__repr__()
-
-
-def save_bad_words(db):
-    bad_words = stopwords.words('english')
-    bad_words = [word.lower() for word in bad_words]
-
-    for word in bad_words:
-        bw = BadWord(word=word)
-        db.session.add(bw)
-
-    db.session.commit()
 
 
 def desc_fts(db, word, limit=25, thresh=60):

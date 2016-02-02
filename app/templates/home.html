@@ -22,6 +22,13 @@
                     {{ rt_form.quantities() }}
                     {{ rt_form.entry(class_='form-control realtime-parse') }}
                 </div>
+                <div class="suggestions">
+                    {%  for s in suggestions %}
+                        {{ s[0] }},
+                        {{ s[1] }},
+                        {{ s[2] }}
+                    {%  endfor %}
+                </div>
                 <div class="col-md-2">
                     {{ rt_form.submit(class_='btn btn-default') }}
                 </div>
