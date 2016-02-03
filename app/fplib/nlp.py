@@ -169,7 +169,14 @@ def realtime_parse_autocomplete(db, query):
     return {"suggestions": res}
 
 
-def autocomplete_foods(db, query):
+def food_parse(db, query):
+    """
+    returns a jsonable dict for the autocomplete js library we are using
+    for a text field used to select a food item
+    :param db:
+    :param query:
+    :return:
+    """
     parts = re.split("\s+", query)
     parts = [lemmer.lemmatize(part) for part in parts]
 
@@ -178,10 +185,9 @@ def autocomplete_foods(db, query):
 
     res = []
     for f in foods:
-        for ms in f.measurements:
-            res.append({'value': f.long_desc,
-                        'data': {
-                            'food-id': f.id
-                        }})
+        res.append({'value': f.long_desc,
+                    'data': {
+                        'food-id': f.id
+                    }})
 
     return {"suggestions": res}

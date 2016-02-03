@@ -35,11 +35,45 @@ $(function() {
             console.log(suggestions);
         },
         onSelect: function(suggestion) {
-            console.log(suggestion);
             $('ul.rtp-entry-items').append('<li>' + suggestion.value + '</li>');
             $('input.realtime-parse').autocomplete('clear');
             $('input.realtime-parse').val('');
             $('input.realtime-parse').focus();
+        },
+        noCache: true
+    });
+});
+
+
+function updateSelect(id) {
+    console.log(id);
+    $("select.food-parse").html("");
+    $.get("/food/" + id + "/measures", function(data) {
+        console.log(data);
+        for (var measure in data.measures) {
+            console.log(data.measures[measure]);
+            var $newOption = $("<option></option>")
+            $newOption.attr("value", data.measures[measure].id);
+            $newOption.html(data.measures[measure].description);
+            $("select.food-parse").append($newOption)
+        }
+    });
+}
+$(function() {
+    $('input.food-parse').autocomplete({
+        serviceUrl: '{{ url_for('main.food_parse') }}',
+        type: 'POST',
+        dataType: 'json',
+        deferRequestBy: 500,
+        onSearchStart: function() {
+            console.log('search start');
+        },
+        onSearchComplete: function (query, suggestions) {
+            console.log('search complete');
+        },
+        onSelect: function(suggestion) {
+            $('ul.food-parse-entry-items').append('<li>' + suggestion.value + '</li>');
+            updateSelect(suggestion.data['food-id']);
         },
         noCache: true
     });
@@ -56,23 +90,25 @@ $(function() {
 </ul>
 <ul class="rtp-items">
 </ul>
-
 <input class="realtime-parse" type="text" size="100%" />
 </div>
 
 <div id="new-input" style="border: 1px solid black; padding: 15px; margin: 15px">
     <h2>Other Input</h2>
+    <ul class="food-parse-entry-items">
+    </ul>
 
     <form>
 
         <input type="text" size=2 />
-        <input type="text" />
-        <select>
-            <option>a</option>
-            <option>b</option>
-            <option>c</option>
-        </select>
+        <input type="text" class="food-parse" size="100"/>
 
+        <select class="food-parse">
+              <option value="value1">Value 1</option>
+              <option value="value2" selected>Value 2</option>
+              <option value="value3">Value 3</option>
+        </select>
+        <a role="button" class="food-parse-submit">enter</a>
 
     </form>
 </div>

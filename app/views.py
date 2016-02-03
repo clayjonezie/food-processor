@@ -268,10 +268,19 @@ def parse_autocomplete():
     return jsonify(nlp.realtime_parse_autocomplete(db, query))
 
 
-@main.route('/autocomplete-foods', methods=['POST', 'GET'])
-def autocomplete_foods():
+@main.route('/food/parse', methods=['POST', 'GET'])
+def food_parse():
     query = request.form['query']
-    return jsonify(nlp.autocomplete_foods(db, query))
+    return jsonify(nlp.food_parse(db, query))
+
+
+@main.route('/food/<int:foodid>/measures')
+def food_measures(foodid):
+    food = FoodDescription.query.get(foodid)
+    return jsonify({'measures':
+                    [{'description': measure.description,
+                      'id': measure.id}
+                     for measure in food.measurements]})
 
 
 @main.route('/logout')
