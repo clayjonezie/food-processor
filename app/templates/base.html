@@ -1,13 +1,14 @@
-{% extends "bootstrap/base.html" %}
+{% extends "page.html" %}
 
 {% block head %}
 {{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheet.css') }}">
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
-{{ moment.include_moment() }}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
 {% endblock %}
   <title>{% block title %}foodprocessor{% endblock %}</title>
 {% block body %}
@@ -15,8 +16,18 @@
 <div class="container">
     <div class="page-header">
       <div class="row">
-        <div class="col-md-8"><h1>foodprocessor</h1></div>
+        <div class="col-md-8">
 
+            {% block menu_left %}
+                <ul>
+                    <li style="display:inline"><a href="{{ url_for('main.index') }}">home</a></li>
+                    {% if current_user.is_authenticated %}
+                        | <li style="display:inline"><a href="{{ url_for('main.goals') }}">goals</a></li>
+                        | <li style="display:inline"><a href="{{ url_for('main.edit_food', id=0) }}">manually add food</a></li>
+                    {% endif %}
+                </ul>
+            {% endblock %}
+        </div>
         <div class="col-md-4">
         {% if current_user.is_authenticated %}
         <p>{{ current_user.email }}</p>
@@ -24,20 +35,8 @@
         {% else %}
             <a href="{{ url_for('main.login') }}">Log In</a> /
             <a href="{{ url_for('main.signup') }}">Sign Up</a>
-
         {% endif %}
         </div>
-      </div>
-      <div class="row">
-        {% block menu_left %}
-        <ul>
-            <li style="display:inline"><a href="{{ url_for('main.index') }}">home</a></li>
-            {% if current_user.is_authenticated %}
-                | <li style="display:inline"><a href="{{ url_for('main.goals') }}">goals</a></li>
-                | <li style="display:inline"><a href="{{ url_for('main.edit_food', id=0) }}">manually add food</a></li>
-            {% endif %}
-        </ul>
-        {% endblock %}
       </div>
     </div>
     <div class="flashes">
@@ -56,8 +55,9 @@
     </div>
     </div>
 
-  <div class="row">
+  <div class="row" id="footer" style="border-top: 1px solid #eee">
   {% block my_footer %}
+      <h1 style="color: #eee">foodprocessor</h1s>
   {% endblock %}
   </div>
 </div>

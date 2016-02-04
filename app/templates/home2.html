@@ -11,6 +11,7 @@
 
 {% block my_content %}
     {{ super() }}
+    <div id="entry-form"></div>
     <div id="week-view"></div>
     <script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}

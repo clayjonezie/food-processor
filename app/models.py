@@ -533,7 +533,8 @@ class Tag(db.Model):
                                        self.measurement.description)
 
     def serializable(self):
-        return {'food': {'id': self.food_description_id,
+        return {'id': self.id,
+                'food': {'id': self.food_description_id,
                          'description': self.food_description.long_desc},
                 'count': self.count,
                 'measure': {'id': self.measurement_weight_id,
