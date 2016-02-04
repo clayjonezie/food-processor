@@ -51,6 +51,11 @@ class RawEntry(db.Model):
 
         return ps
 
+    def serializable(self):
+        return {'id': self.id,
+                'at': str(self.at),
+                'tags': [t.serializable() for t in self.tags]}
+
 
 def get_week_list(user):
     """
@@ -526,6 +531,16 @@ class Tag(db.Model):
         return '<Tag: %s %f %s %s>' % (str(self.id), self.count or 0,
                                        self.food_description.long_desc,
                                        self.measurement.description)
+
+    def serializable(self):
+        return {'food': {'id': self.food_description_id,
+                         'description': self.food_description.long_desc},
+                'count': self.count,
+                'measure': {'id': self.measurement_weight_id,
+                            'description':
+                                self.measurement.description
+                                if self.measurement is not None
+                                else None}}
 
 
     @staticmethod
