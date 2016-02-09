@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask.ext.login import current_user, login_required
 
 from models import *
+import forms
 
 api = Blueprint('api', 'api')
 
@@ -12,3 +13,18 @@ def week():
                      'entries': [re.serializable() for re in d[1]]}
                     for d in week_hist]
     return jsonify({'week': serializable})
+
+
+@api.route('/api/food-lookup')
+def food_lookup():
+    print request.form
+    print request.data
+    return 'ok'
+
+@api.route('/api/entry', methods=['POST'])
+def entry():
+    print request.form
+    return 'thanks'
+
+
+
