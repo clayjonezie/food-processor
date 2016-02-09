@@ -43,3 +43,7 @@ def entry():
     db.session.commit()
     return jsonify({'success': True})
 
+
+@api.route('/graphs/day_nutrients', methods=['GET'])
+def day_nutrients_graph():
+    

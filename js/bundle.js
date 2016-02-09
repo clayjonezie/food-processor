@@ -22555,7 +22555,7 @@ var FoodLookupField = React.createClass({
     displayName: 'FoodLookupField',
 
     getInitialState: function () {
-        return { food: { description: '', id: 0 } };
+        return { food: null };
     },
     componentDidMount: function () {
         var component = this;
@@ -22578,8 +22578,13 @@ var FoodLookupField = React.createClass({
             }
         });
     },
+    reset: function () {
+        console.log("resetting");
+        $('input.food-lookup-field').val('');
+    },
     render: function () {
-        return React.createElement('input', { className: 'food-lookup-field',
+        return React.createElement('input', { style: { width: "100%" },
+            className: 'food-lookup-field',
             type: 'text',
             placeholder: 'Raw Apple' });
     }
@@ -22627,6 +22632,8 @@ var EntryForm = React.createClass({
             dataType: 'json',
             success: function (data) {
                 this.props.week_view.loadFromServer();
+                this.setState(this.getInitialState());
+                this.refs.food_lookup_field.reset();
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
@@ -22649,26 +22656,49 @@ var EntryForm = React.createClass({
         if (options.length != 0) {
             select = React.createElement(
                 'select',
-                { onChange: this.handleMeasureChange },
+                { style: { width: "100%" },
+                    onChange: this.handleMeasureChange },
                 options
             );
         } else {
-            select = null;
+            select = React.createElement('div', { style: { width: "100%" } });
         }
         return React.createElement(
-            'form',
-            { className: 'entryForm', onSubmit: this.handleSubmit },
-            React.createElement('input', {
-                type: 'text',
-                size: '2',
-                value: this.state.count,
-                onChange: this.handleCountChange
-            }),
-            React.createElement(FoodLookupField, { onSelect: this.handleFoodChange }),
-            select,
-            React.createElement('input', {
-                type: 'submit',
-                value: 'Post' })
+            'div',
+            { className: 'row' },
+            React.createElement(
+                'form',
+                { className: 'entryForm', onSubmit: this.handleSubmit },
+                React.createElement(
+                    'div',
+                    { className: 'col-md-1' },
+                    React.createElement('input', {
+                        type: 'text',
+                        size: '2',
+                        value: this.state.count,
+                        onChange: this.handleCountChange
+                    })
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'col-md-7' },
+                    React.createElement(FoodLookupField, { ref: 'food_lookup_field',
+                        onSelect: this.handleFoodChange })
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'col-md-3' },
+                    select
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'col-md-1' },
+                    React.createElement('input', {
+                        style: { width: "100%" },
+                        type: 'submit',
+                        value: 'Post' })
+                )
+            )
         );
     }
 });

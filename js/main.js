@@ -8,7 +8,7 @@ var FoodLookupField = React.createClass({
     displayName: 'FoodLookupField',
 
     getInitialState: function () {
-        return { food: { description: '', id: 0 } };
+        return { food: null };
     },
     componentDidMount: function () {
         var component = this;
@@ -31,9 +31,13 @@ var FoodLookupField = React.createClass({
             }
         });
     },
+    reset: function () {
+        $('input.food-lookup-field').val('');
+    },
     render: function () {
         return (
-            <input className="food-lookup-field"
+            <input style={{width: "100%"}}
+                   className="food-lookup-field"
                    type="text"
                    placeholder="Raw Apple" />
         );
@@ -54,8 +58,6 @@ var EntryForm = React.createClass({
         this.setState({ count: parseFloat(e.target.value) });
     },
     handleMeasureChange: function (e) {
-        console.log('measure change');
-        console.log(e);
         this.setState({ measure_id: e.target.value });
     },
     fetchMeasures: function(food_id) {
@@ -82,6 +84,8 @@ var EntryForm = React.createClass({
             dataType: 'json',
             success: function(data) {
                 this.props.week_view.loadFromServer();
+                this.setState(this.getInitialState());
+                this.refs.food_lookup_field.reset();
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
@@ -101,26 +105,40 @@ var EntryForm = React.createClass({
 
         var select;
         if (options.length != 0) {
-            select = <select onChange={this.handleMeasureChange}>
+            select =
+                <select style={{width:"100%"}}
+                    onChange={this.handleMeasureChange}>
                 {options}
             </select>
         } else {
-            select = null;
+            select = <div style={{width:"100%"}}></div>
         }
         return (
-            <form className="entryForm" onSubmit={this.handleSubmit}>
-                <input
-                    type="text"
-                    size="2"
-                    value={this.state.count}
-                    onChange={this.handleCountChange}
-                />
-                <FoodLookupField onSelect={this.handleFoodChange} />
-                {select}
-                <input
-                    type="submit"
-                    value="Post" />
-            </form>
+            <div className="row">
+                <form className="entryForm" onSubmit={this.handleSubmit}>
+                    <div className="col-md-1">
+                        <input
+                            type="text"
+                            size="2"
+                            value={this.state.count}
+                            onChange={this.handleCountChange}
+                        />
+                    </div>
+                    <div className="col-md-7">
+                        <FoodLookupField ref="food_lookup_field"
+                                         onSelect={this.handleFoodChange} />
+                    </div>
+                    <div className="col-md-3">
+                        {select}
+                    </div>
+                    <div className="col-md-1">
+                        <input
+                            style={{width: "100%"}}
+                            type="submit"
+                            value="Post" />
+                    </div>
+                </form>
+            </div>
         );
     }
 });
@@ -168,7 +186,6 @@ var WeekView = React.createClass({
             days = this.state.week.map(function (day) {
                 return React.createElement(DayView, { tags: day.tags, date: day.date, key: day.date });
             });
-            console.log(days);
         }
         return React.createElement(
             'div',
@@ -182,8 +199,6 @@ var DayView = React.createClass({
     displayName: 'DayView',
 
     render: function () {
-        console.log("got prop tags: ");
-        console.log(this.props.tags);
         if (this.props.tags.length == 0) {
             return null;
         }
@@ -191,8 +206,6 @@ var DayView = React.createClass({
             return (<TagView tag={tag} key={tag.at} />);
         });
 
-        console.log('tags');
-        console.log(tags);
         return (
             <div className="day-view">
                 <h2>{Moment(this.props.date).format("dddd, MMMM Do")}</h2>
