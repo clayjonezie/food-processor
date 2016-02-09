@@ -22558,6 +22558,7 @@ var FoodLookupField = React.createClass({
         return { food: { description: '', id: 0 } };
     },
     componentDidMount: function () {
+        var component = this;
         $('input.food-lookup-field').autocomplete({
             serviceUrl: '/api/food-lookup',
             type: 'POST',
@@ -22565,13 +22566,15 @@ var FoodLookupField = React.createClass({
             deferRequestBy: 300,
             onSearchStart: function () {
                 // should provide feedback
+                console.log("searchiing");
             },
-            onSearchComplete: function (query, suggestions) {},
+            onSearchComplete: function (query, suggestions) {
+                console.log("dne searchiing");
+            },
             onSelect: function (suggestion) {
                 var food_id = suggestion.data['food-id'];
                 var food_desc = suggestion.value;
-
-                this.props.onSelect();
+                component.props.onSelect({ description: food_desc, id: food_id });
             }
         });
     },
@@ -22586,27 +22589,58 @@ var EntryForm = React.createClass({
     displayName: 'EntryForm',
 
     getInitialState: function () {
-        return { count: 1, food: null, measures: [], measure: null };
+        return { count: 1, food: null, measures: [], measure_id: null };
     },
-    handleFoodChange: function () {
-        console.log("food change!");
+    handleFoodChange: function (food_obj) {
+        this.fetchMeasures(food_obj.id);
+        this.setState({ food: food_obj });
     },
     handleCountChange: function (e) {
         this.setState({ count: parseFloat(e.target.value) });
     },
     handleMeasureChange: function (e) {
         console.log('measure change');
+        console.log(e);
+        this.setState({ measure_id: e.target.value });
+    },
+    fetchMeasures: function (food_id) {
+        var url = '/api/food/' + food_id + '/measures';
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                this.setState({ measures: data.measures,
+                    measure_id: data.measures[0].id });
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
     },
     handleSubmit: function (e) {
         e.preventDefault();
-        alert("submittttttttted to the server");
+
+        $.ajax({
+            type: 'post',
+            url: this.props.url,
+            dataType: 'json',
+            success: function (data) {
+                this.props.week_view.loadFromServer();
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this),
+            data: this.state
+        });
     },
     render: function () {
         var options = this.state.measures.map(function (o) {
             return React.createElement(
                 'option',
                 { value: o.id,
-                    onChange: this.handleMeasureChange },
+                    onChange: this.handleMeasureChange,
+                    key: o.id },
                 o.description
             );
         });
@@ -22630,7 +22664,7 @@ var EntryForm = React.createClass({
                 value: this.state.count,
                 onChange: this.handleCountChange
             }),
-            React.createElement(FoodLookupField, null),
+            React.createElement(FoodLookupField, { onSelect: this.handleFoodChange }),
             select,
             React.createElement('input', {
                 type: 'submit',
@@ -22665,7 +22699,7 @@ var WeekView = React.createClass({
 
         var empty = true;
         for (var d in this.state.week) {
-            if (this.state.week[d].entries.length > 0) {
+            if (this.state.week[d].tags.length > 0) {
                 empty = false;
                 break;
             }
@@ -22676,8 +22710,9 @@ var WeekView = React.createClass({
             days = React.createElement('p', null, 'Nothing to show!');
         } else {
             days = this.state.week.map(function (day) {
-                return React.createElement(DayView, { entries: day.entries, date: day.date, key: day.date });
+                return React.createElement(DayView, { tags: day.tags, date: day.date, key: day.date });
             });
+            console.log(days);
         }
         return React.createElement('div', { className: 'week-view' }, days);
     }
@@ -22687,12 +22722,17 @@ var DayView = React.createClass({
     displayName: 'DayView',
 
     render: function () {
-        if (this.props.entries.length == 0) {
+        console.log("got prop tags: ");
+        console.log(this.props.tags);
+        if (this.props.tags.length == 0) {
             return null;
         }
-        var entries = this.props.entries.map(function (entry) {
-            React.createElement(EntryView, { entry: entry, key: entry.at });
+        var tags = this.props.tags.map(function (tag) {
+            return React.createElement(TagView, { tag: tag, key: tag.at });
         });
+
+        console.log('tags');
+        console.log(tags);
         return React.createElement(
             'div',
             { className: 'day-view' },
@@ -22707,44 +22747,6 @@ var DayView = React.createClass({
                 React.createElement(
                     'tbody',
                     null,
-                    entries
-                )
-            )
-        );
-    }
-});
-
-var EntryView = React.createClass({
-    displayName: 'EntryView',
-
-    render: function () {
-        var e = this.props.entry;
-
-        var tags = e["tags"].map(function (tag) {
-            return React.createElement(
-                'li',
-                { key: tag["id"] },
-                tag["count"],
-                '  ',
-                tag["measure"]["description"],
-                ' x  ',
-                tag["food"]["description"]
-            );
-        });
-        return React.createElement(
-            'tr',
-            null,
-            React.createElement(
-                'td',
-                null,
-                Moment(e["at"]).format("h:mm a")
-            ),
-            React.createElement(
-                'td',
-                null,
-                React.createElement(
-                    'ul',
-                    { style: { marginBottom: '0px' } },
                     tags
                 )
             )
@@ -22752,8 +22754,29 @@ var EntryView = React.createClass({
     }
 });
 
-ReactDOM.render(React.createElement(WeekView, { url: '/api/week' }), document.getElementById('week-view'));
-ReactDOM.render(React.createElement(EntryForm, { url: '/api/entry' }), document.getElementById('entry-form'));
+var TagView = React.createClass({
+    displayName: 'TagView',
+    render: function () {
+        var tag = this.props.tag;
+        return React.createElement(
+            'tr',
+            null,
+            React.createElement(
+                'td',
+                { key: tag["id"] },
+                tag["count"],
+                '  ',
+                tag["measure"]["description"],
+                ' x  ',
+                tag["food"]["description"]
+            )
+        );
+    }
+});
+
+var home_week_view = ReactDOM.render(React.createElement(WeekView, { url: '/api/week' }), document.getElementById('week-view'));
+
+ReactDOM.render(React.createElement(EntryForm, { url: '/api/entry', week_view: home_week_view }), document.getElementById('entry-form'));
 
 },{"moment":1,"react":158,"react-dom":2}],160:[function(require,module,exports){
 // shim for using process in browser

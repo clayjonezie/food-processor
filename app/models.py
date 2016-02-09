@@ -145,8 +145,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(256), unique=True)
     password_hash = db.Column(db.String(128))
 
-    raw_entries = db.relationship(
-        'RawEntry', backref='user', order_by='desc(RawEntry.at)')
+    raw_entries = db.relationship('RawEntry', backref='user')
+    tags = db.relationship('Tag', backref='user')
     short_preferences = db.relationship('ShortPreference', backref='user')
     nutrient_goals = db.relationship('NutrientGoal', backref='user')
     foods = db.relationship('FoodDescription', 
@@ -521,6 +521,8 @@ class Tag(db.Model):
     size = db.Column(db.Float)
     size_units = db.Column(db.String(10))
     measurement_weight_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    at = db.Column(db.DateTime)
 
     def count_text_field(self):
         return render_template("count_text_field.html", 
@@ -541,8 +543,31 @@ class Tag(db.Model):
                             'description':
                                 self.measurement.description
                                 if self.measurement is not None
-                                else None}}
+                                else None},
+                'at': self.at.isoformat()}
 
+    @staticmethod
+    def get_week(user):
+        """
+        :param user: the user
+        creates a dictionary of dates over the last week with lists of
+        tags from that day
+        :return: a list of dicts {date, list of tags}
+        """
+        now = datetime.utcnow()
+        weekago = now - timedelta(days=6)
+        tags = Tag.query.filter(Tag.at >= weekago.isoformat()).\
+            filter(Tag.at <= now.isoformat()).\
+            filter(Tag.user == user).\
+            order_by('at desc').all()
+        dates = [(now.date() - timedelta(days=r)) for r in range(7)]
+        week = dict()
+        for d in dates:
+            week[d] = list()
+        for tag in tags:
+            week[tag.at.date()].append(tag)
+        return [{'date': d, 'tags': week.get(d)}
+                for d in sorted(week.keys(), reverse=True)]
 
     @staticmethod
     def get_day(user, start):
