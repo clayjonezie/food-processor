@@ -44,6 +44,39 @@ def entry():
     return jsonify({'success': True})
 
 
-@api.route('/graphs/day_nutrients', methods=['GET'])
+@api.route('/api/graphs/day_nutrients', methods=['GET'])
 def day_nutrients_graph():
-    
+    # list of (NutrDef, percent complete, current amount, goal amount)
+    goals = get_day_goals(current_user)
+
+    data = []
+    for g in goals:
+        data.append({'value': g[1],
+                     'color':"#F7464A",
+                     'highlight': "#FF5A5E",
+                     'label': g[0].desc})
+
+    print 'data', data
+
+    return jsonify({'data': data})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

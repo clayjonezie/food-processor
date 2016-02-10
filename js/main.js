@@ -3,6 +3,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Moment = require('moment');
+//var Chart = require('chartjs');
 
 var FoodLookupField = React.createClass({
     displayName: 'FoodLookupField',
@@ -187,11 +188,13 @@ var WeekView = React.createClass({
                 return React.createElement(DayView, { tags: day.tags, date: day.date, key: day.date });
             });
         }
-        return React.createElement(
-            'div',
-            { className: 'week-view' },
-            days
-        );
+
+        return (
+           <div className="week-view">
+               <DayGoalsChart />
+               {days}
+           </div>
+        )
     }
 });
 
@@ -226,6 +229,41 @@ var TagView = React.createClass({
                 {tag["measure"]["description"]} x &nbsp;
                 {tag["food"]["description"]}</td></tr>
         );
+    }
+});
+
+var DayGoalsChart = React.createClass({
+    displayName: 'DayGoalsChart',
+    getInitialState: function() {
+        return {data: null,
+                options: {
+                    responsive: false,
+                    animationEasing: "easeOutQuart",
+                    animateRotate : false,
+                    animateScale : true
+                }};
+    },
+    componentDidMount: function () {
+        this.loadFromServer();
+    },
+    loadFromServer: function() {
+        var url = '/api/graphs/day_nutrients';
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            cache: false,
+            success: function (response) {
+                this.setState({data: response.data});
+                var ctx = document.getElementById("DayGoalsChart").getContext("2d");
+                this.chart = new Chart(ctx).PolarArea(this.state.data, this.state.options);
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    render: function() {
+        return <canvas id="DayGoalsChart" height="400" width="400"></canvas>
     }
 });
 

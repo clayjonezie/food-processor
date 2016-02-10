@@ -573,14 +573,9 @@ class Tag(db.Model):
     def get_day(user, start):
         """ returns all tags from a day for a user """
         end = start + timedelta(days=1)
-        raw_entries = RawEntry.query.filter(RawEntry.user_id == user.id).\
-            filter(RawEntry.at >= start.isoformat()).\
-            filter(RawEntry.at <= end.isoformat()).all()
-        tags = list()
-        for re in raw_entries:
-            for t in re.tags:
-                tags.append(t)
-
+        tags = Tag.query.filter(Tag.user_id == user.id).\
+            filter(Tag.at >= start.isoformat()).\
+            filter(Tag.at <= end.isoformat()).all()
         return tags
 
 

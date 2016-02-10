@@ -3,6 +3,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Moment = require('moment');
+//var Chart = require('chartjs');
 
 var FoodLookupField = React.createClass({
     displayName: 'FoodLookupField',
@@ -32,7 +33,6 @@ var FoodLookupField = React.createClass({
         });
     },
     reset: function () {
-        console.log("resetting");
         $('input.food-lookup-field').val('');
     },
     render: function () {
@@ -57,8 +57,6 @@ var EntryForm = React.createClass({
         this.setState({ count: parseFloat(e.target.value) });
     },
     handleMeasureChange: function (e) {
-        console.log('measure change');
-        console.log(e);
         this.setState({ measure_id: e.target.value });
     },
     fetchMeasures: function (food_id) {
@@ -195,9 +193,14 @@ var WeekView = React.createClass({
             days = this.state.week.map(function (day) {
                 return React.createElement(DayView, { tags: day.tags, date: day.date, key: day.date });
             });
-            console.log(days);
         }
-        return React.createElement('div', { className: 'week-view' }, days);
+
+        return React.createElement(
+            'div',
+            { className: 'week-view' },
+            React.createElement(DayGoalsChart, null),
+            days
+        );
     }
 });
 
@@ -205,8 +208,6 @@ var DayView = React.createClass({
     displayName: 'DayView',
 
     render: function () {
-        console.log("got prop tags: ");
-        console.log(this.props.tags);
         if (this.props.tags.length == 0) {
             return null;
         }
@@ -214,8 +215,6 @@ var DayView = React.createClass({
             return React.createElement(TagView, { tag: tag, key: tag.at });
         });
 
-        console.log('tags');
-        console.log(tags);
         return React.createElement(
             'div',
             { className: 'day-view' },
@@ -254,6 +253,41 @@ var TagView = React.createClass({
                 tag["food"]["description"]
             )
         );
+    }
+});
+
+var DayGoalsChart = React.createClass({
+    displayName: 'DayGoalsChart',
+    getInitialState: function () {
+        return { data: null,
+            options: {
+                responsive: false,
+                animationEasing: "easeOutQuart",
+                animateRotate: false,
+                animateScale: true
+            } };
+    },
+    componentDidMount: function () {
+        this.loadFromServer();
+    },
+    loadFromServer: function () {
+        var url = '/api/graphs/day_nutrients';
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            cache: false,
+            success: function (response) {
+                this.setState({ data: response.data });
+                var ctx = document.getElementById("DayGoalsChart").getContext("2d");
+                this.chart = new Chart(ctx).PolarArea(this.state.data, this.state.options);
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    render: function () {
+        return React.createElement('canvas', { id: 'DayGoalsChart', height: '400', width: '400' });
     }
 });
 
