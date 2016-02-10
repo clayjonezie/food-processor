@@ -117,6 +117,10 @@ var EntryForm = React.createClass({
         return (
             <div className="row">
                 <form className="entryForm" onSubmit={this.handleSubmit}>
+                    <div className="col-md-7">
+                        <FoodLookupField ref="food_lookup_field"
+                                         onSelect={this.handleFoodChange} />
+                    </div>
                     <div className="col-md-1">
                         <input
                             type="text"
@@ -124,10 +128,6 @@ var EntryForm = React.createClass({
                             value={this.state.count}
                             onChange={this.handleCountChange}
                         />
-                    </div>
-                    <div className="col-md-7">
-                        <FoodLookupField ref="food_lookup_field"
-                                         onSelect={this.handleFoodChange} />
                     </div>
                     <div className="col-md-3">
                         {select}
@@ -184,8 +184,14 @@ var WeekView = React.createClass({
                 'Nothing to show!'
             );
         } else {
+            var loadFromServer = this.loadFromServer;
             days = this.state.week.map(function (day) {
-                return React.createElement(DayView, { tags: day.tags, date: day.date, key: day.date });
+                return React.createElement(DayView, {
+                    tags: day.tags,
+                    date: day.date,
+                    key: day.date,
+                    refresh: loadFromServer
+                });
             });
         }
 
@@ -205,8 +211,9 @@ var DayView = React.createClass({
         if (this.props.tags.length == 0) {
             return null;
         }
+        var refresh = this.props.refresh;
         var tags = this.props.tags.map(function (tag) {
-            return (<TagView tag={tag} key={tag.at} />);
+            return (<TagView tag={tag} key={tag.at} refresh={refresh} />);
         });
 
         return (
@@ -222,12 +229,30 @@ var DayView = React.createClass({
 
 var TagView = React.createClass({
     displayName: 'TagView',
+    remove: function() {
+        var url = '/api/entry/delete'
+        $.ajax({
+            url: url,
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            data: this.props.tag,
+            success: function (response) {
+                this.props.refresh();
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        })
+    },
     render: function () {
         var tag = this.props.tag;
         return (
             <tr><td key={tag["id"]}>{tag["count"]} &nbsp;
                 {tag["measure"]["description"]} x &nbsp;
-                {tag["food"]["description"]}</td></tr>
+                {tag["food"]["description"]}
+            <a style={{float: 'right'}} onClick={this.remove}>(delete)</a>
+            </td></tr>
         );
     }
 });

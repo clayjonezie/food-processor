@@ -122,6 +122,12 @@ var EntryForm = React.createClass({
                 { className: 'entryForm', onSubmit: this.handleSubmit },
                 React.createElement(
                     'div',
+                    { className: 'col-md-7' },
+                    React.createElement(FoodLookupField, { ref: 'food_lookup_field',
+                        onSelect: this.handleFoodChange })
+                ),
+                React.createElement(
+                    'div',
                     { className: 'col-md-1' },
                     React.createElement('input', {
                         type: 'text',
@@ -129,12 +135,6 @@ var EntryForm = React.createClass({
                         value: this.state.count,
                         onChange: this.handleCountChange
                     })
-                ),
-                React.createElement(
-                    'div',
-                    { className: 'col-md-7' },
-                    React.createElement(FoodLookupField, { ref: 'food_lookup_field',
-                        onSelect: this.handleFoodChange })
                 ),
                 React.createElement(
                     'div',
@@ -190,8 +190,14 @@ var WeekView = React.createClass({
         if (empty) {
             days = React.createElement('p', null, 'Nothing to show!');
         } else {
+            var loadFromServer = this.loadFromServer;
             days = this.state.week.map(function (day) {
-                return React.createElement(DayView, { tags: day.tags, date: day.date, key: day.date });
+                return React.createElement(DayView, {
+                    tags: day.tags,
+                    date: day.date,
+                    key: day.date,
+                    refresh: loadFromServer
+                });
             });
         }
 
@@ -211,8 +217,9 @@ var DayView = React.createClass({
         if (this.props.tags.length == 0) {
             return null;
         }
+        var refresh = this.props.refresh;
         var tags = this.props.tags.map(function (tag) {
-            return React.createElement(TagView, { tag: tag, key: tag.at });
+            return React.createElement(TagView, { tag: tag, key: tag.at, refresh: refresh });
         });
 
         return React.createElement(
@@ -238,6 +245,22 @@ var DayView = React.createClass({
 
 var TagView = React.createClass({
     displayName: 'TagView',
+    remove: function () {
+        var url = '/api/entry/delete';
+        $.ajax({
+            url: url,
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            data: this.props.tag,
+            success: function (response) {
+                this.props.refresh();
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
     render: function () {
         var tag = this.props.tag;
         return React.createElement(
@@ -250,7 +273,12 @@ var TagView = React.createClass({
                 '  ',
                 tag["measure"]["description"],
                 ' x  ',
-                tag["food"]["description"]
+                tag["food"]["description"],
+                React.createElement(
+                    'a',
+                    { style: { float: 'right' }, onClick: this.remove },
+                    '(delete)'
+                )
             )
         );
     }

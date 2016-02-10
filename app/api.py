@@ -32,7 +32,7 @@ def food_measures(food_id):
 
 
 @api.route('/api/entry', methods=['POST'])
-def entry():
+def create_entry():
     t = Tag()
     t.user = current_user
     t.count = int(request.form['count'])
@@ -42,6 +42,19 @@ def entry():
     db.session.add(t)
     db.session.commit()
     return jsonify({'success': True})
+
+
+@api.route('/api/entry/delete', methods=['POST'])
+def delete_entry():
+    print request.form
+    tag_id = int(request.form['id'])
+    tag = Tag.query.get(tag_id)
+    if tag is not None:
+        db.session.delete(tag)
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False})
 
 
 @api.route('/api/graphs/day_nutrients', methods=['GET'])
