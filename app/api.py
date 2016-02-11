@@ -8,6 +8,7 @@ from fplib import nlp
 api = Blueprint('api', 'api')
 
 
+@login_required
 @api.route('/api/week')
 def week():
     weeks_tags = Tag.get_week(current_user)
@@ -17,7 +18,7 @@ def week():
     return jsonify({'week': serializable})
 
 
-@api.route('/api/food-lookup', methods=['GET', 'POST'])
+@api.route('/api/food_lookup', methods=['GET', 'POST'])
 def food_lookup():
     query = request.form['query']
     return jsonify(nlp.food_parse(db, query))
@@ -31,6 +32,7 @@ def food_measures(food_id):
                       'id': measure.id} for measure in food.measurements]})
 
 
+@login_required
 @api.route('/api/entry', methods=['POST'])
 def create_entry():
     t = Tag()
@@ -44,6 +46,7 @@ def create_entry():
     return jsonify({'success': True})
 
 
+@login_required
 @api.route('/api/entry/delete', methods=['POST'])
 def delete_entry():
     print request.form
@@ -57,6 +60,7 @@ def delete_entry():
         return jsonify({'success': False})
 
 
+@login_required
 @api.route('/api/graphs/day_nutrients', methods=['GET'])
 def day_nutrients_graph():
     # list of (NutrDef, percent complete, current amount, goal amount)
@@ -74,6 +78,12 @@ def day_nutrients_graph():
     return jsonify({'data': data})
 
 
+@login_required
+@api.route('/api/suggestions')
+def get_suggestions():
+    suggestions = [t.serializable() for t in current_user.get_suggestions()]
+    return jsonify({'suggestions': suggestions})
+    
 
 
 

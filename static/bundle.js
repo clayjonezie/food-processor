@@ -22561,7 +22561,7 @@ var FoodLookupField = React.createClass({
     componentDidMount: function () {
         var component = this;
         $('input.food-lookup-field').autocomplete({
-            serviceUrl: '/api/food-lookup',
+            serviceUrl: '/api/food_lookup',
             type: 'POST',
             dataType: 'json',
             deferRequestBy: 300,

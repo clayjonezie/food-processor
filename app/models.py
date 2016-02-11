@@ -208,25 +208,23 @@ class User(UserMixin, db.Model):
                                      "FROM food_descriptions "
                                      "INNER JOIN tags "
                                      "    ON tags.food_description_id = food_descriptions.id "
-                                     "INNER JOIN raw_entries "
-                                     "    ON raw_entries.id = tags.raw_entry_id "
                                      "INNER JOIN users "
-                                     "    ON users.id = raw_entries.user_id "
+                                     "    ON users.id = tags.user_id "
                                      "WHERE users.id = :uid "
                                      "GROUP BY food_descriptions.id "
                                      "ORDER BY cnt DESC limit :limit;"),
                              uid=self.id, limit=lim).fetchall()
 
 
-        # this should be pushed to sql. finds the most common count and measure for each
+        # this should be pushed to sql. finds the most recent count and measure for each
         results = []
         for foodid, food_desc, food_count in foods:
             (count, measure_id, measure_desc) = db.session.query(Tag.count,
                                                                  Tag.measurement_weight_id,
                                                                  MeasurementWeight.description)\
-                .outerjoin(RawEntry).outerjoin(User).outerjoin(MeasurementWeight)\
+                .outerjoin(User).outerjoin(MeasurementWeight)\
                 .filter(Tag.food_description_id == foodid)\
-                .filter(User.id == self.id).order_by(RawEntry.at.desc()).first()
+                .filter(User.id == self.id).order_by(Tag.at.desc()).first()
 
             results.append((foodid, food_desc, count, measure_id, measure_desc))
 
