@@ -3,7 +3,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Moment = require('moment');
-//var Chart = require('chartjs');
+var d3 = require('d3');
 
 var FoodLookupField = React.createClass({
     displayName: 'FoodLookupField',
@@ -14,7 +14,7 @@ var FoodLookupField = React.createClass({
     componentDidMount: function () {
         var component = this;
         $('input.food-lookup-field').autocomplete({
-            serviceUrl: '/api/food-lookup',
+            serviceUrl: '/api/food_lookup',
             type: 'POST',
             dataType: 'json',
             deferRequestBy: 300,
@@ -116,38 +116,55 @@ var EntryForm = React.createClass({
         }
         return React.createElement(
             'div',
-            { className: 'row' },
+            null,
             React.createElement(
-                'form',
-                { className: 'entryForm', onSubmit: this.handleSubmit },
+                'div',
+                { className: 'row' },
                 React.createElement(
                     'div',
-                    { className: 'col-md-7' },
-                    React.createElement(FoodLookupField, { ref: 'food_lookup_field',
-                        onSelect: this.handleFoodChange })
-                ),
+                    { className: 'col-md-12' },
+                    React.createElement(
+                        'h2',
+                        null,
+                        'What have you had to eat?'
+                    )
+                )
+            ),
+            React.createElement(
+                'div',
+                { className: 'row' },
                 React.createElement(
-                    'div',
-                    { className: 'col-md-1' },
-                    React.createElement('input', {
-                        type: 'text',
-                        size: '2',
-                        value: this.state.count,
-                        onChange: this.handleCountChange
-                    })
-                ),
-                React.createElement(
-                    'div',
-                    { className: 'col-md-3' },
-                    select
-                ),
-                React.createElement(
-                    'div',
-                    { className: 'col-md-1' },
-                    React.createElement('input', {
-                        style: { width: "100%" },
-                        type: 'submit',
-                        value: 'Post' })
+                    'form',
+                    { className: 'entryForm', onSubmit: this.handleSubmit },
+                    React.createElement(
+                        'div',
+                        { className: 'col-md-7' },
+                        React.createElement(FoodLookupField, { ref: 'food_lookup_field',
+                            onSelect: this.handleFoodChange })
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'col-md-1' },
+                        React.createElement('input', {
+                            type: 'text',
+                            size: '2',
+                            value: this.state.count,
+                            onChange: this.handleCountChange
+                        })
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'col-md-3' },
+                        select
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'col-md-1' },
+                        React.createElement('input', {
+                            style: { width: "100%" },
+                            type: 'submit',
+                            value: 'Post' })
+                    )
                 )
             )
         );
@@ -172,6 +189,7 @@ var WeekView = React.createClass({
                 console.error(this.props.url, status, err.toString());
             }.bind(this)
         });
+        this.refs.DayGoalsChart.loadFromServer();
     },
     componentDidMount: function () {
         this.loadFromServer();
@@ -204,7 +222,7 @@ var WeekView = React.createClass({
         return React.createElement(
             'div',
             { className: 'week-view' },
-            React.createElement(DayGoalsChart, null),
+            React.createElement(DayGoalsChart, { ref: 'DayGoalsChart' }),
             days
         );
     }
@@ -286,17 +304,43 @@ var TagView = React.createClass({
 
 var DayGoalsChart = React.createClass({
     displayName: 'DayGoalsChart',
-    getInitialState: function () {
-        return { data: null,
-            options: {
-                responsive: false,
-                animationEasing: "easeOutQuart",
-                animateRotate: false,
-                animateScale: true
-            } };
-    },
     componentDidMount: function () {
-        this.loadFromServer();
+        // this.loadFromServer();
+    },
+    drawChart: function (data) {
+        var margin = { top: 20, right: 30, bottom: 30, left: 40 },
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        var y = d3.scale.linear().range([height, 0]).domain([0, 1]);
+        var x = d3.scale.linear().range([width, 0]).domain([0, 1]);
+        var barWidth = width / data.length;
+        var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(function (d) {
+            return d * 100;
+        });
+        var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks([]);
+
+        d3.select("#DayGoalsChart").selectAll("*").remove();
+
+        var chart = d3.select("#DayGoalsChart").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        chart.append("g").attr("class", "y axis").call(yAxis).append("text").attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em").style("text-anchor", "end").text("Percent of Goal");
+
+        chart.append("g").attr("class", "x axis").call(xAxis).attr("transform", "translate(0, " + height + ")");
+
+        var bar = chart.selectAll().data(data).enter().append("g").attr("class", "bar").attr("transform", function (d, i) {
+            return "translate(" + i * barWidth + ", 0)";
+        });
+
+        bar.append("rect").attr("y", function (d) {
+            return y(d.value);
+        }).attr("height", function (d) {
+            return height - y(d.value);
+        }).attr("width", barWidth - 1);
+
+        bar.append("text").attr("x", barWidth / 2).attr("y", height).attr("dy", "1em").text(function (d) {
+            return d.current.toFixed(1) + "/" + d.total + "(" + d.unit + ") " + d.label;
+        });
     },
     loadFromServer: function () {
         var url = '/api/graphs/day_nutrients';
@@ -306,8 +350,7 @@ var DayGoalsChart = React.createClass({
             cache: false,
             success: function (response) {
                 this.setState({ data: response.data });
-                var ctx = document.getElementById("DayGoalsChart").getContext("2d");
-                this.chart = new Chart(ctx).PolarArea(this.state.data, this.state.options);
+                this.drawChart(this.state.data);
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(url, status, err.toString());
@@ -315,7 +358,7 @@ var DayGoalsChart = React.createClass({
         });
     },
     render: function () {
-        return React.createElement('canvas', { id: 'DayGoalsChart', height: '400', width: '400' });
+        return React.createElement('svg', { id: 'DayGoalsChart', height: '400', width: '400' });
     }
 });
 

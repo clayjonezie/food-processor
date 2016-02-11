@@ -69,9 +69,10 @@ def day_nutrients_graph():
     data = []
     for g in goals:
         data.append({'value': g[1],
-                     'color':"#F7464A",
-                     'highlight': "#FF5A5E",
-                     'label': g[0].desc})
+                     'current': g[2],
+                     'total': g[3],
+                     'label': g[0].desc,
+                     'unit': g[0].units})
 
     print 'data', data
 

@@ -120,6 +120,7 @@ def get_day_goals(user, day=None):
     tags = Tag.get_day(user, day)
     nuts = FoodDescription.sum_nutrients(tags)
 
+
     goals = list()
     for nut in nuts:
         nutdef = nut[0]
@@ -409,6 +410,9 @@ class FoodDescription(db.Model):
         [(NutrientDefintion, summed_float_nutr_value), ...]
         """
         summed_nuts = dict()
+        for n in NutrientDefinition.get_group(group):
+            summed_nuts[n] = 0.0
+
         for t in tags:
             if t.food_description is not None:
                 nuts = t.food_description.get_nutrients_by_group(
@@ -416,8 +420,6 @@ class FoodDescription(db.Model):
                 for n in nuts:
                     if n[0] in summed_nuts.keys():
                         summed_nuts[n[0]] += n[1]
-                    else:
-                        summed_nuts[n[0]] = n[1]
 
         return summed_nuts.items()
 
