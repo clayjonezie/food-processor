@@ -37,7 +37,7 @@ def food_measures(food_id):
 def create_entry():
     t = Tag()
     t.user = current_user
-    t.count = int(request.form['count'])
+    t.count = float(request.form['count'])
     t.measurement_weight_id = int(request.form['measure_id'])
     t.food_description_id = int(request.form['food[id]'])
     t.at = datetime.now()
@@ -82,7 +82,7 @@ def day_nutrients_graph():
 @login_required
 @api.route('/api/suggestions')
 def get_suggestions():
-    suggestions = [t.serializable() for t in current_user.get_suggestions()]
+    suggestions = current_user.get_suggestions()
     return jsonify({'suggestions': suggestions})
     
 

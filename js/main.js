@@ -36,11 +36,53 @@ var FoodLookupField = React.createClass({
         $('input.food-lookup-field').val('');
     },
     render: function () {
+        if (this.props.food != null) {
+            $("input.food-lookup-field").val(this.props.food.description);
+        }
         return (
             <input style={{width: "100%"}}
                    className="food-lookup-field"
                    type="text"
-                   placeholder="Raw Apple" />
+                   placeholder="Raw Apple"
+            />
+        );
+    }
+});
+
+var EntrySuggestions = React.createClass({
+    getInitialState: function() {
+        return { suggestions: [] };
+    },
+    componentDidMount: function() {
+        this.fetchFromServer();
+    },
+    fetchFromServer: function() {
+        var url = '/api/suggestions';
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            cache: false,
+            success: function (data) {
+                this.setState({suggestions: data.suggestions});
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    suggestionClicked: function(e) {
+        var key = $(e.target).attr('data-key');
+        this.props.onSelection(this.state.suggestions[key]);
+    },
+    render: function() {
+        var suggestions = this.state.suggestions.map(function(suggestion, i) {
+            return (
+                <li key={i}><a role="button" data-key={i} onClick={this.suggestionClicked}>
+                    {suggestion.food_desc}</a></li>
+            );
+        }.bind(this));
+        return (
+            <ul>{suggestions}</ul>
         );
     }
 });
@@ -56,28 +98,45 @@ var EntryForm = React.createClass({
         this.setState({food: food_obj});
     },
     handleCountChange: function (e) {
-        this.setState({ count: parseFloat(e.target.value) });
+        this.setState({ count: e.target.value });
     },
     handleMeasureChange: function (e) {
         this.setState({ measure_id: e.target.value });
     },
-    fetchMeasures: function(food_id) {
+    fetchMeasures: function(food_id, measure_id) {
         var url = '/api/food/' + food_id + '/measures';
         $.ajax({
             url: url,
             dataType: 'json',
             cache: false,
             success: function (data) {
+                var new_measure_id = measure_id;
+                if (new_measure_id == null) {
+                    new_measure_id = data.measures[0].id;
+                }
                 this.setState({measures: data.measures,
-                               measure_id: data.measures[0].id});
+                               measure_id: new_measure_id});
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(url, status, err.toString());
             }.bind(this)
         });
     },
+    handleSuggestionSelection: function(suggestion) {
+        this.fetchMeasures(suggestion['food_id'], suggestion['measure_id']);
+        this.setState({food: {description: suggestion['food_desc'],
+                              id: suggestion['food_id']},
+                       count: suggestion['count']})
+    },
     handleSubmit: function (e) {
         e.preventDefault();
+
+        if (parseFloat(this.state.count) == NaN) {
+            alert("count must be a number")
+            return;
+        } else {
+            this.setState({count: parseFloat(this.state.count)})
+        }
 
         $.ajax({
             type: 'post',
@@ -102,12 +161,12 @@ var EntryForm = React.createClass({
                         key={o.id}>
                     {o.description}</option>
             );
-        });
+        }.bind(this));
 
         var select;
         if (options.length != 0) {
             select =
-                <select style={{width:"100%"}}
+                <select style={{width:"100%"}} value={this.state.measure_id}
                     onChange={this.handleMeasureChange}>
                 {options}
             </select>
@@ -123,7 +182,8 @@ var EntryForm = React.createClass({
                     <form className="entryForm" onSubmit={this.handleSubmit}>
                         <div className="col-md-7">
                             <FoodLookupField ref="food_lookup_field"
-                                             onSelect={this.handleFoodChange} />
+                                             onSelect={this.handleFoodChange}
+                                             food={this.state.food} />
                         </div>
                         <div className="col-md-1">
                             <input
@@ -143,6 +203,9 @@ var EntryForm = React.createClass({
                                 value="Post" />
                         </div>
                     </form>
+                </div>
+                <div className="row suggestions">
+                    <EntrySuggestions onSelection={this.handleSuggestionSelection} />
                 </div>
             </div>
         );

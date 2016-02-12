@@ -227,7 +227,8 @@ class User(UserMixin, db.Model):
                 .filter(Tag.food_description_id == foodid)\
                 .filter(User.id == self.id).order_by(Tag.at.desc()).first()
 
-            results.append((foodid, food_desc, count, measure_id, measure_desc))
+            results.append({'food_id': foodid, 'food_desc': food_desc, 'count': count,
+                            'measure_id': measure_id, 'measure_desc': measure_desc})
 
         return results
 
