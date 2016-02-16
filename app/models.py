@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Index
 from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
@@ -315,6 +315,7 @@ class FoodDescription(db.Model):
                                 backref='food_description')
     owners = db.relationship('User', secondary=food_description_owner_table,
             back_populates='foods')
+
 
     def __init__(self):
         """ in __init__ we will create empty nutrient info (0.0) """
@@ -645,8 +646,13 @@ class NutrientGoal(db.Model):
     amount = db.Column(db.Float)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     nutrient_id = db.Column(db.Integer, db.ForeignKey('nutrient_definitions.nutr_no'))
+    show_on_graph = db.Column(db.Boolean)
 
     def __init__(self, amount, user, nutrient):
         self.amount = amount
         self.user = user
         self.nutrient = nutrient
+        self.show_on_graph = False
+
+
+# indexes
