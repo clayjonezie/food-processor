@@ -130,6 +130,7 @@ def get_day_goals(user, day=None):
             percent = current_amount / goal
             goals.append((nutdef, percent, current_amount, goal))
 
+    goals.sort(key=lambda x: x[0].nutr_no)
     return goals
 
 
