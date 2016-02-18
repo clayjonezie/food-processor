@@ -194,7 +194,7 @@ var EntryForm = React.createClass({
                     React.createElement(
                         'h2',
                         null,
-                        'What have you had to eat?'
+                        'What have you eaten?'
                     )
                 )
             ),
@@ -417,6 +417,7 @@ var DayGoalsChart = React.createClass({
         bar.append("text").attr("x", barWidth / 2).attr("y", height).attr("dy", "1em").text(function (d) {
             return d.current.toFixed(1) + "/" + d.total + "(" + d.unit + ") " + d.label;
         });
+        //.attr("transform", "rotate(45)")
     },
     loadFromServer: function () {
         var url = '/api/graphs/day_nutrients';

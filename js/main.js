@@ -176,7 +176,7 @@ var EntryForm = React.createClass({
         return (
             <div>
                 <div className="row">
-                    <div className="col-md-12"><h2>What have you had to eat?</h2></div>
+                    <div className="col-md-12"><h2>What have you eaten?</h2></div>
                 </div>
                 <div className="row">
                     <form className="entryForm" onSubmit={this.handleSubmit}>
@@ -378,6 +378,7 @@ var DayGoalsChart = React.createClass({
             .attr("y", height)
             .attr("dy", "1em")
             .text(function(d) { return d.current.toFixed(1) + "/" + d.total + "(" + d.unit + ") " + d.label; });
+            //.attr("transform", "rotate(45)")
     },
     loadFromServer: function() {
         var url = '/api/graphs/day_nutrients';

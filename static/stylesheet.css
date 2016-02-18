@@ -34,11 +34,11 @@
 }
 
 .carbohydrate {
-  fill: brown;
+  fill: #FF7E0D;
 }
 .protein {
-  fill: green;
+  fill: #B00DFF;
 }
 .fat {
-  fill: blue;
+  fill: #0CE8AE;
 }
