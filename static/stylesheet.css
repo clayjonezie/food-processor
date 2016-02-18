@@ -33,3 +33,12 @@
   shape-rendering: crispEdges;
 }
 
+.carbohydrate {
+  fill: brown;
+}
+.protein {
+  fill: green;
+}
+.fat {
+  fill: blue;
+}

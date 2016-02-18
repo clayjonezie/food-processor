@@ -130,7 +130,6 @@ var EntryForm = React.createClass({
         });
     },
     handleSuggestionSelection: function (suggestion) {
-        console.log(suggestion);
         this.fetchMeasures(suggestion['food_id'], suggestion['measure_id']);
         this.setState({ food: { description: suggestion['food_desc'],
                 id: suggestion['food_id'] },
@@ -265,6 +264,7 @@ var WeekView = React.createClass({
             }.bind(this)
         });
         this.refs.DayGoalsChart.loadFromServer();
+        this.refs.DayMacrosChart.loadFromServer();
     },
     componentDidMount: function () {
         this.loadFromServer();
@@ -298,6 +298,7 @@ var WeekView = React.createClass({
             'div',
             { className: 'week-view' },
             React.createElement(DayGoalsChart, { ref: 'DayGoalsChart' }),
+            React.createElement(DayMacrosChart, { ref: 'DayMacrosChart' }),
             days
         );
     }
@@ -399,7 +400,7 @@ var DayGoalsChart = React.createClass({
 
         var chart = d3.select("#DayGoalsChart").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        chart.append("g").attr("class", "y axis").call(yAxis).append("text").attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em").style("text-anchor", "end").text("Percent of Goal");
+        chart.append("g").attr("class", "y axis").call(yAxis).append("text").attr("transform", "rotate(-90)").attr("y", 6).attr("z", 190090).attr("dy", ".71em").style("text-anchor", "end").text("Percent of Goal");
 
         chart.append("g").attr("class", "x axis").call(xAxis).attr("transform", "translate(0, " + height + ")");
 
@@ -434,6 +435,61 @@ var DayGoalsChart = React.createClass({
     },
     render: function () {
         return React.createElement('svg', { id: 'DayGoalsChart', height: '400', width: '400' });
+    }
+});
+
+var DayMacrosChart = React.createClass({
+    displayName: 'DayMacrosChart',
+    drawChart: function () {
+        var key_height = 50;
+        var chart_height = 100;
+        var width = 960,
+            height = chart_height + key_height;
+        d3.select("#DayMacrosChart").selectAll("*").remove();
+
+        var graph = d3.select("#DayMacrosChart").attr("width", width).attr("height", height);
+
+        var key = graph.append("g").attr("height", key_height).attr("width", width);
+        var chart = graph.append("g").attr("height", chart_height).attr("width", width).attr("transform", "translate(0, " + key_height + ")");
+
+        var key_node_height = 10,
+            key_node_padding = 5,
+            text_height = 16;
+        key.append("rect").attr("height", 10).attr("width", 10).attr("x", 0).attr("y", key_node_padding + (text_height - key_node_height) / 2).attr("class", "carbohydrate key");
+        key.append("text").attr("x", key_node_height + key_node_height).attr("y", key_node_padding).attr("dy", "1em").text("carbohydrate");
+        key.append("rect").attr("height", 10).attr("width", 10).attr("x", 0).attr("y", key_node_height + key_node_padding * 2 + (text_height - key_node_height) / 2).attr("class", "protein key");
+        key.append("text").attr("x", key_node_height + key_node_height).attr("y", key_node_padding * 2 + key_node_height).attr("dy", "1em").text("protein");
+        key.append("rect").attr("height", 10).attr("width", 10).attr("x", 0).attr("y", key_node_height * 2 + key_node_padding * 3 + (text_height - key_node_height) / 2).attr("class", "fat key");
+        key.append("text").attr("x", key_node_height + key_node_height).attr("y", key_node_padding * 3 + key_node_height * 2).attr("dy", "1em").text("fat");
+
+        console.log(this.state.data);
+
+        var total_cals = this.state.data["total"]["calories"];
+        var carbohydrate_width = width * this.state.data["carbohydrate"]["calories"] / total_cals;
+        var protein_width = width * this.state.data["protein"]["calories"] / total_cals;
+        var fat_width = width * this.state.data["fat"]["calories"] / total_cals;
+
+        chart.append("rect").attr("height", chart_height).attr("width", carbohydrate_width).attr("x", 0).attr("class", "carbohydrate");
+        chart.append("rect").attr("height", chart_height).attr("width", protein_width).attr("x", carbohydrate_width).attr("class", "protein");
+        chart.append("rect").attr("height", chart_height).attr("width", fat_width).attr("x", carbohydrate_width + protein_width).attr("class", "fat");
+    },
+    loadFromServer: function () {
+        var url = '/api/graphs/day_macros';
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            cache: false,
+            success: function (response) {
+                this.setState({ data: response.data });
+                this.drawChart({ data: response.data });
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    render: function () {
+        return React.createElement('svg', { id: 'DayMacrosChart', height: '100', width: '400' });
     }
 });
 

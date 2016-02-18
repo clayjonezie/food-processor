@@ -110,35 +110,41 @@ def get_week_days(user):
     return week
 
 
-def get_day_goals(user, day=None):
+def get_day_goals(user, day=None, graph_only=False):
     """
     returns a list of tuples of the form
     (NutrDef, percent complete, current amount, goal amount)
+    :param user: the user
+    :param day: (a datetime.date object)
+    :param graph_only: True means filter by NutrientGoal.show_on_graph
     """
     if day is None:
         day = datetime.now().date()
     tags = Tag.get_day(user, day)
-    nuts = FoodDescription.sum_nutrients(tags)
-
+    nuts = FoodDescription.sum_nutrients(tags, group=None)
 
     goals = list()
     for nut in nuts:
         nutdef = nut[0]
         goal = user.get_goal(nutdef)
-        if goal is not None:
+        if goal is not None and (graph_only is False or goal.show_on_graph):
             current_amount = nut[1]
-            percent = current_amount / goal
-            goals.append((nutdef, percent, current_amount, goal))
+            if goal.amount > 0:
+                percent = current_amount / goal.amount
+            else:
+                if current_amount > 0:
+                    percent = 1.0
+                else:
+                    percent = 0
+            goals.append((nutdef, percent, current_amount, goal.amount))
 
     goals.sort(key=lambda x: x[0].nutr_no)
     return goals
 
 
-food_description_owner_table = db.Table('food_owners', db.metadata, 
-        db.Column('food_description_id', db.Integer, 
-            db.ForeignKey('food_descriptions.id')),
-        db.Column('user_id', db.Integer, 
-            db.ForeignKey('users.id')))
+food_description_owner_table = db.Table('food_owners', db.metadata, db.Column('food_description_id', db.Integer,
+                                                                              db.ForeignKey('food_descriptions.id')),
+                                        db.Column('user_id', db.Integer, db.ForeignKey('users.id')))
 
 
 class User(UserMixin, db.Model):
@@ -176,9 +182,8 @@ class User(UserMixin, db.Model):
         ng = NutrientGoal.query.\
             filter(NutrientGoal.nutrient_id == nutrient_definition.nutr_no).\
             filter(NutrientGoal.user_id == self.id).first()
-        if ng is not None:
-            return ng.amount
-        return None
+
+        return ng
 
     def get_all_goals(self):
         """
@@ -336,7 +341,7 @@ class FoodDescription(db.Model):
 
     def get_nutrients_by_group(self, group=1, measurement=None, count=1):
         """
-        :param group: what group to gather
+        :param group: what group to gather, None means all groups
         :param measurement: the measurement to use to calculate things
         :return: list of pairs in the form of
         [(NutrientDefintion, scaled_float_nutr_value), ...]
@@ -346,10 +351,14 @@ class FoodDescription(db.Model):
         """
         NDATA = NutrientData
         NDEF = NutrientDefinition
-        pairs = db.session.query(NDEF, NDATA).\
-            filter(NDEF.group == group).\
+        query = db.session.query(NDEF, NDATA).\
             filter(NDATA.nutr_no == NDEF.nutr_no).\
-            filter(NDATA.ndb_no == self.id).all()
+            filter(NDATA.ndb_no == self.id)
+
+        if group is not None:
+            query = query.filter(NDEF.group == group)
+
+        pairs = query.all()
 
         def calculate(original):
             if measurement is not None:
@@ -357,7 +366,7 @@ class FoodDescription(db.Model):
                         count * measurement.gram_weight *
                         original[1].nutr_val / 100)
             else:
-                return (original[0], count * original[1].nutr_val)
+                return original[0], count * original[1].nutr_val
 
         return map(calculate, pairs)
 
@@ -366,7 +375,7 @@ class FoodDescription(db.Model):
             return None
 
         favor = ["nlea", "bunch", "whole", "medium", "cup"]
-        if (entry_hint is not None):
+        if entry_hint is not None:
             favor.insert(0, entry_hint.lower())
 
         for f in favor:
@@ -466,8 +475,11 @@ class NutrientDefinition(db.Model):
 
     @staticmethod
     def get_group(group):
-        return NutrientDefinition.query.\
-                filter(NutrientDefinition.group==group).all()
+        if group is None:
+            return NutrientDefinition.query.all()
+        else:
+            return NutrientDefinition.query.\
+                    filter(NutrientDefinition.group==group).all()
 
 
 class NutrientData(db.Model):

@@ -64,7 +64,7 @@ def delete_entry():
 @api.route('/api/graphs/day_nutrients', methods=['GET'])
 def day_nutrients_graph():
     # list of (NutrDef, percent complete, current amount, goal amount)
-    goals = get_day_goals(current_user)
+    goals = get_day_goals(current_user, graph_only=True)
 
     data = []
     for g in goals:
@@ -80,27 +80,50 @@ def day_nutrients_graph():
 
 
 @login_required
+@api.route('/api/graphs/day_macros', methods=['GET'])
+def day_macros_graph():
+    day = datetime.now().date()
+    tags = Tag.get_day(current_user, day)
+    nuts = FoodDescription.sum_nutrients(tags, group=1)
+    carbs = NutrientDefinition.query.filter(NutrientDefinition.tagname == "CHOCDF").first()
+    protein = NutrientDefinition.query.filter(NutrientDefinition.tagname == "PROCNT").first()
+    fat = NutrientDefinition.query.filter(NutrientDefinition.tagname == "FAT").first()
+
+    carbs_amount, protein_amount, fat_amount = 0.0, 0.0, 0.0
+
+    for ndef, amount in nuts:
+        if ndef is carbs:
+            carbs_amount = amount
+        if ndef is protein:
+            protein_amount = amount
+        if ndef is fat:
+            fat_amount = amount
+
+    data = {
+        'carbohydrate': {
+            'grams': carbs_amount,
+            'calories': carbs_amount * 4
+        },
+        'protein': {
+            'grams': protein_amount,
+            'calories': protein_amount * 4
+        },
+        'fat': {
+            'grams': fat_amount,
+            'calories': fat_amount * 9
+        },
+        'total': {
+            'grams': carbs_amount + protein_amount + fat_amount,
+            'calories': (carbs_amount * 4) + (protein_amount * 4) + (fat_amount * 9)
+        }
+    }
+
+    return jsonify({'data': data})
+
+
+@login_required
 @api.route('/api/suggestions')
 def get_suggestions():
     suggestions = current_user.get_suggestions()
     return jsonify({'suggestions': suggestions})
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

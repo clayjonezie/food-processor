@@ -208,6 +208,8 @@ def create_goal():
             goal = existing_goal
             goal.amount = amount
 
+        goal.show_on_graph = 'show_on_graph' in request.form.keys()
+
         db.session.add(goal)
         db.session.commit()
     return redirect(url_for('main.goals'))

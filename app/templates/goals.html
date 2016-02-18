@@ -4,16 +4,27 @@
 {% block my_content %}
 
     <table class="table table-bordered">
+        <thead><tr><td>Nutrient</td><td>Goal</td><td>Show on Graph?</td><td>Update</td></tr></thead>
         {% for goal in goals %}
             <tr>
+                <form action="{{ url_for('main.create_goal') }}" method="post">
                 <td>{{ goal.nutrient.desc }}</td>
                 <td>
-                    <form action="{{ url_for('main.create_goal') }}" method="post">
-                        <input type="number" name="amount" step="any" min="0" value="{{ goal.amount }}"/>
-                        <input type="hidden" name="nutrient_id" value="{{ goal.nutrient.nutr_no }}" />
-                        (units are {{ goal.nutrient.units }})
-                        <input type="submit" value="change" />
-                    </form></td>
+                    <input type="number" name="amount" step="any" min="0" value="{{ goal.amount }}"/>
+                    <input type="hidden" name="nutrient_id" value="{{ goal.nutrient.nutr_no }}" />
+                    ({{ goal.nutrient.units }})
+                    </td>
+                <td>
+                    {% if goal.show_on_graph %}
+                        <input type="checkbox" name="show_on_graph" checked/>
+                    {%  else %}
+                        <input type="checkbox" name="show_on_graph" />
+                    {% endif %}
+                </td>
+                <td>
+                    <input type="submit" value="Update" />
+                </td>
+            </form>
             </tr>
         {% endfor %}
     </table>
