@@ -12,10 +12,6 @@
 .autocomplete-group strong { display: block; border-bottom: 1px solid #000; }
 
 
-#DayGoalsChart g.bar rect {
-  fill: steelblue;
-}
-
 #DayGoalsChart text {
   color: black;
   fill: black;

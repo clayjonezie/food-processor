@@ -74,13 +74,14 @@ def contact():
 
 
 def home():
-    rt_form = RealtimeParseForm()
-    rt_form.entry.data = ''
-
-    week_entries = get_week_hist(current_user)
-    week = get_week_days(current_user)
-    suggestions = current_user.get_suggestions()
     return render_template('home2.html')
+
+
+@login_required
+@main.route('/plan')
+def plan():
+    return render_template('plan.html')
+
 
 
 @main.route('/raw_entries/add', methods=['POST'])

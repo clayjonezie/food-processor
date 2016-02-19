@@ -667,4 +667,16 @@ class NutrientGoal(db.Model):
         self.show_on_graph = False
 
 
-# indexes
+class MealPlan(db.Model):
+    """
+    Represents a plan to have a meal (currently repeating weekly)
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    meal_time = db.Column(db.String(50))        #one of breakfast, lunch, dinner, snack
+    weekday = db.Column(db.Integer)
+    food_id = db.Column(db.Integer, db.ForeignKey('food_description.id'))
+    measure_id = db.Column(db.Integer, db.ForeignKey('measurement_weight.id'))
+    count = db.Column(db.Float)
+
+
+

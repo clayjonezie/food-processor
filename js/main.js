@@ -369,16 +369,33 @@ var DayGoalsChart = React.createClass({
             .attr("transform", function(d, i) {return "translate(" + i * barWidth + ", 0)"; });
 
         bar.append("rect")
-            .attr("y", function(d) { return y(d.value); })
-            .attr("height", function(d) { return height - y(d.value); })
-            .attr("width", barWidth - 1);
+            .attr("y", function(d) {
+                return Math.max(0, y(d.value));
+            })
+            .attr("height", function(d) {
+                return Math.min(height - y(d.value), height);
+            })
+            .attr("width", barWidth - 1)
+            .attr("fill", function (d) {
+                // l scales from 31 to 100
+                var l = 50 + (1 - Math.min(1, d.value)) * 50;
+                return "hsl(234, 70%, " + l + "%)";
 
+            });
+
+        bar.append("text")
+            .attr("width", barWidth)
+            .attr("x", barWidth / 2)
+            .attr("y", function(d) {
+                return Math.min(Math.max(0, y(d.value)), height - 16);
+            })
+            .attr("dy", "1em")
+            .text(function(d) { return d.current.toFixed(1) + "/" + d.total + " " + d.unit; });
         bar.append("text")
             .attr("x", barWidth / 2)
             .attr("y", height)
             .attr("dy", "1em")
-            .text(function(d) { return d.current.toFixed(1) + "/" + d.total + "(" + d.unit + ") " + d.label; });
-            //.attr("transform", "rotate(45)")
+            .text(function(d) { return d.label; });
     },
     loadFromServer: function() {
         var url = '/api/graphs/day_nutrients';
