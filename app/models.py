@@ -667,16 +667,29 @@ class NutrientGoal(db.Model):
         self.show_on_graph = False
 
 
+meal_plan_weekdays = db.Table('meal_plan_weekdays', db.metadata,
+                              db.Column('meal_plan_id', db.Integer, db.ForeignKey('meal_plans.id')),
+                              db.Column('weekday_id', db.Integer, db.ForeignKey('weekdays.id')))
+
+
 class MealPlan(db.Model):
     """
     Represents a plan to have a meal (currently repeating weekly)
     """
+    __tablename__ = 'meal_plans'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     meal_time = db.Column(db.String(50))        #one of breakfast, lunch, dinner, snack
-    weekday = db.Column(db.Integer)
-    food_id = db.Column(db.Integer, db.ForeignKey('food_description.id'))
-    measure_id = db.Column(db.Integer, db.ForeignKey('measurement_weight.id'))
+    weekdays = db.relationship('Weekday', secondary=meal_plan_weekdays)
+    food_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
+    measure_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
     count = db.Column(db.Float)
 
 
-
+class Weekday(db.Model):
+    """
+    a single weekday with isoformat for the ids
+    """
+    __tablename__ = 'weekdays'
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(10))
