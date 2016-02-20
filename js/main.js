@@ -1,4 +1,7 @@
-
+var React = require('react');
+var ReactDOM = require('react-dom');
+var Moment = require('moment');
+var d3 = require('d3');
 
 var FoodLookupField = React.createClass({
     displayName: 'FoodLookupField',
@@ -502,12 +505,18 @@ var DayMacrosChart = React.createClass({
     }
 });
 
-var home_week_view = ReactDOM.render(
-    <WeekView url="/api/week" />,
-    document.getElementById('week-view')
-);
 
-ReactDOM.render(
-    <EntryForm url="/api/entry" week_view={home_week_view} />,
-    document.getElementById('entry-form')
-);
+if (document.getElementById('week-view')) {
+    var home_week_view = ReactDOM.render(
+        <WeekView url="/api/week"/>,
+        document.getElementById('week-view')
+    );
+}
+
+
+if (document.getElementById('entry-form')) {
+    ReactDOM.render(
+        <EntryForm url="/api/entry" week_view={home_week_view}/>,
+        document.getElementById('entry-form')
+    );
+}

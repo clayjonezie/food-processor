@@ -132,4 +132,4 @@ def get_suggestions():
 @api.route('/api/plan')
 def get_plan():
     plan = current_user.get_plan()
-    return jsonify({'plan': plan})
+    return jsonify({'plan': [p.serializable() for p in plan]})

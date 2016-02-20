@@ -10,7 +10,6 @@
 {{ super() }}
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.autocomplete.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}
   <title>{% block title %}foodprocessor{% endblock %}</title>
 {% block body %}
@@ -60,4 +59,5 @@
   {% endblock %}
   </div>
 </div>
+<script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}

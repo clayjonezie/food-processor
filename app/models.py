@@ -239,7 +239,8 @@ class User(UserMixin, db.Model):
         return results
 
     def get_plan(self):
-        mealplans = MealPlan.query.filter(MealPlan.user_id==self.id)
+        mealplans = MealPlan.query.filter(MealPlan.user_id==self.id).all()
+        return mealplans
 
 
     def __repr__(self):
@@ -658,8 +659,8 @@ class MeasurementWeight(db.Model):
         return self
 
     def serializable(self):
-        return {'description', self.description,
-                'id', self.id}
+        return {'description': self.description,
+                'id': self.id}
 
 
 class NutrientGoal(db.Model):
