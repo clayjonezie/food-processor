@@ -5,16 +5,12 @@
 
 {% block scripts %}
 {{ super() }}
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery.autocomplete.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='rt-entry.js') }}"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
 {% endblock %}
 
 {% block my_content %}
     {{ super() }}
     <div id="entry-form"></div>
     <div id="week-view"></div>
-    <script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}
 {% block my_footer %}
     {{ super() }}

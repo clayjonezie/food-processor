@@ -5,13 +5,11 @@
 
 {% block scripts %}
 {{ super() }}
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery.autocomplete.min.js') }}"></script>
 {% endblock %}
 
 {% block my_content %}
     {{ super() }}
-    <div id="goal-view"></div>
-    <script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
+    <div id="plan-view"></div>
 {% endblock %}
 {% block my_footer %}
     {{ super() }}

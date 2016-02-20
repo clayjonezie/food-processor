@@ -127,3 +127,9 @@ def get_suggestions():
     suggestions = current_user.get_suggestions()
     return jsonify({'suggestions': suggestions})
 
+
+@login_required
+@api.route('/api/plan')
+def get_plan():
+    plan = current_user.get_plan()
+    return jsonify({'plan': plan})

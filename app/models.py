@@ -238,6 +238,9 @@ class User(UserMixin, db.Model):
 
         return results
 
+    def get_plan(self):
+        mealplans = MealPlan.query.filter(MealPlan.user_id==self.id)
+
 
     def __repr__(self):
         return '<User: %s>' % self.email
@@ -335,6 +338,10 @@ class FoodDescription(db.Model):
             db.session.add(nut_data)
 
         db.session.commit()
+
+    def serializable(self):
+        return {'description': self.common_name,
+                'id': self.id}
 
     def __repr__(self):
         return "<FoodDescription: %s>" % self.long_desc
@@ -639,7 +646,6 @@ class MeasurementWeight(db.Model):
                 (self.amount, self.description, 
                         self.food_description, self.gram_weight)
 
-    
     def from_ndb(self, ndb_row):
         self.ndb_no = int(ndb_row[0])
         self.seq = int(ndb_row[1]) if ndb_row[1] != '' else None
@@ -651,8 +657,15 @@ class MeasurementWeight(db.Model):
 
         return self
 
+    def serializable(self):
+        return {'description', self.description,
+                'id', self.id}
+
 
 class NutrientGoal(db.Model):
+    """
+    A goal for a specific user and a nutrient
+    """
     __tablename__ = 'nutrient_goals'
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float)
@@ -679,17 +692,32 @@ class MealPlan(db.Model):
     __tablename__ = 'meal_plans'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    meal_time = db.Column(db.String(50))        #one of breakfast, lunch, dinner, snack
+    meal_time = db.Column(db.String(50))
     weekdays = db.relationship('Weekday', secondary=meal_plan_weekdays)
     food_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
     measure_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
     count = db.Column(db.Float)
 
+    def serializable(self):
+        return {'id': self.id,
+                'meal_time': self.meal_time,
+                'weekdays': [w.serializable() for w in self.weekdays],
+                'food': FoodDescription.query.get(self.food_id).serializable(),
+                'measure': MeasurementWeight.query.get(self.measure_id).serializable(),
+                'count': self.count}
+
 
 class Weekday(db.Model):
     """
-    a single weekday with isoformat for the ids
+    a single weekday with iso8601 ordering for the ids, M=1 Sun=7
     """
     __tablename__ = 'weekdays'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(10))
+
+    def serializable(self):
+        return {'description': self.description,
+                'id': self.id}
+
+    def __repr__(self):
+        return "<%s >" % self.description

@@ -1,9 +1,21 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
-var Moment = require('moment');
-var d3 = require('d3');
-
-var GoalView = React.createClass({
+var PlanView = React.createClass({
+    componentDidMount: function() {
+        this.loadFromServer();
+    },
+    loadFromServer: function() {
+        var url = '/api/plan';
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                this.setState({plan: response.plan});
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        })
+    },
     render: function() {
         return (
             <p>goal</p>
@@ -12,6 +24,6 @@ var GoalView = React.createClass({
 });
 
 ReactDOM.render(
-    <GoalView />,
-    document.getElementById("goal-view")
+    <PlanView />,
+    document.getElementById("plan-view")
 );

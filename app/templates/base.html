@@ -8,7 +8,9 @@
 
 {% block scripts %}
 {{ super() }}
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.autocomplete.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}
   <title>{% block title %}foodprocessor{% endblock %}</title>
 {% block body %}
@@ -23,6 +25,7 @@
                     <li style="display:inline"><a href="{{ url_for('main.index') }}">home</a></li>
                     {% if current_user.is_authenticated %}
                         | <li style="display:inline"><a href="{{ url_for('main.goals') }}">goals</a></li>
+                        | <li style="display:inline"><a href="{{ url_for('main.plan') }}">meal plan</a></li>
                         | <li style="display:inline"><a href="{{ url_for('main.edit_food', id=0) }}">manually add food</a></li>
                     {% endif %}
                 </ul>
