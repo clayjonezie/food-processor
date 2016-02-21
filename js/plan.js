@@ -3,6 +3,9 @@ var ReactDOM = require('react-dom');
 var Moment = require('moment');
 var d3 = require('d3');
 var PlanView = React.createClass({
+    getInitialState: function () {
+        return {plan: []}
+    },
     componentDidMount: function() {
         this.loadFromServer();
     },
@@ -29,15 +32,37 @@ var PlanView = React.createClass({
             'dinner':    [[], [], [], [], [], [], []]
         };
 
-        for (var mp in this.state.plan) {
-            for (var wd in mp['weekdays']) {
+        for (var i in this.state.plan) {
+            var mp = this.state.plan[i];
+            for (var j in mp['weekdays']) {
+                var wd = mp['weekdays'][j];
+                console.log('pushing ' + mp + 'to ' + mp['meal_time'] + (wd.id - 1));
                 mealTimes[mp['meal_time']][wd.id - 1].push(mp);
             }
         }
 
-        console.log(this.state);
+        console.log(this.state.plan);
+        console.log(mealTimes);
+
+        var i = 0;
+        function renderDay(day) {
+            var mps = day.map(function(mp) {
+                return (<li key={mp['id']}>{mp['food']['description']}</li>);
+            });
+            return (<td key={i++}><ul>{mps}</ul></td>);
+        }
+
         return (
-            <p>goal</p>
+            <table className="plan table table-bordered">
+                <tbody>
+                    <tr><td></td><td>Monday</td><td>Tuesday</td><td>Wednesday</td><td>Thursday</td><td>Friday</td>
+                        <td>Saturday</td><td>Sunday</td></tr>
+                    <tr><td>Breakfast</td>{mealTimes['breakfast'].map(renderDay)}</tr>
+                    <tr><td>Lunch</td>{mealTimes['lunch'].map(renderDay)}</tr>
+                    <tr><td>Snacks</td>{mealTimes['snack'].map(renderDay)}</tr>
+                    <tr><td>Dinner</td>{mealTimes['dinner'].map(renderDay)}</tr>
+                </tbody>
+            </table>
         );
     }
 });

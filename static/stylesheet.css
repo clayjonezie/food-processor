@@ -38,3 +38,8 @@
 .fat {
   fill: #0CE8AE;
 }
+
+table.plan td ul {
+  list-style-type: none;
+  padding-left: 0px;
+}
