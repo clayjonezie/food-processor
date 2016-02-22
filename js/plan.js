@@ -1,7 +1,11 @@
+
+
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Moment = require('moment');
 var d3 = require('d3');
+var main = require('./main_out');
+
 var PlanView = React.createClass({
     getInitialState: function () {
         return {plan: []}
@@ -67,9 +71,70 @@ var PlanView = React.createClass({
     }
 });
 
+// plan form
+// food/measure/count, what days, what food times
+
+var PlanAddForm = React.createClass({
+    getInitialState: function() {
+        return {days: [], foodTimes: []};
+    },
+    handleSubmit: function(e) {
+        e.preventDefault();
+        var mealTimes = $("#food-entry-form .mealTimes input[type='checkbox']").filter(function(i, input) {
+            return input.checked;
+        }).map(function(i, input) {
+            return input.value;
+        });
+        var weekdays = $("#food-entry-form .weekdays input[type='checkbox']").filter(function(i, input) {
+            return input.checked;
+        }).map(function(i, input) {
+            return input.value;
+        });
+
+        console.log(mealTimes);
+        console.log(weekdays);
+    },
+    render: function() {
+        return (
+            <div>
+                <main.FoodEntryForm />
+
+                <form id="food-entry-form" onSubmit={this.handleSubmit}>
+                    <p className="mealTimes">
+                        <label><input type="checkbox" value="breakfast" />Breakfast</label>
+                        <label><input type="checkbox" value="lunch" />Lunch</label>
+                        <label><input type="checkbox" value="snack" />Snack</label>
+                        <label><input type="checkbox" value="dinner" />Dinner</label>
+                    </p>
+                    <p className="weekdays">
+                        <label><input type="checkbox" value="1" />Monday</label>
+                        <label><input type="checkbox" value="2" />Tuesday</label>
+                        <label><input type="checkbox" value="3" />Wednesday</label>
+                        <label><input type="checkbox" value="4" />Thursday</label>
+                        <label><input type="checkbox" value="5" />Friday</label>
+                        <label><input type="checkbox" value="6" />Saturday</label>
+                        <label><input type="checkbox" value="7" />Sunday</label>
+                    </p>
+                    <input type="submit" value="Add"/>
+                </form>
+            </div>
+        );
+    }
+});
+
+// plan page
+if (document.getElementById("plan-add-form")) {
+    ReactDOM.render(
+        <PlanAddForm />,
+        document.getElementById("plan-add-form")
+    );
+}
+
 if (document.getElementById("plan-view")) {
     ReactDOM.render(
         <PlanView />,
         document.getElementById("plan-view")
     );
 }
+
+// end plan page

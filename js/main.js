@@ -85,7 +85,7 @@ var EntrySuggestions = React.createClass({
     }
 });
 
-var EntryForm = React.createClass({
+var FoodEntryForm = React.createClass({
     displayName: 'EntryForm',
 
     getInitialState: function () {
@@ -120,11 +120,11 @@ var EntryForm = React.createClass({
             }.bind(this)
         });
     },
-    handleSuggestionSelection: function(suggestion) {
-        this.fetchMeasures(suggestion['food_id'], suggestion['measure_id']);
-        this.setState({food: {description: suggestion['food_desc'],
-                              id: suggestion['food_id']},
-                       count: suggestion['count']})
+    handleExternalSelection: function(selection) {
+        this.fetchMeasures(selection['food_id'], selection['measure_id']);
+        this.setState({food: {description: selection['food_desc'],
+            id: selection['food_id']},
+            count: selection['count']})
     },
     handleSubmit: function (e) {
         e.preventDefault();
@@ -136,20 +136,12 @@ var EntryForm = React.createClass({
             this.setState({count: parseFloat(this.state.count)})
         }
 
-        $.ajax({
-            type: 'post',
-            url: this.props.url,
-            dataType: 'json',
-            success: function(data) {
-                this.props.week_view.loadFromServer();
-                this.setState(this.getInitialState());
-                this.refs.food_lookup_field.reset();
-            }.bind(this),
-            error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this),
-            data: this.state
-        })
+        this.props.onSubmit(this.state, function() {
+            this.setState(this.getInitialState());
+            this.refs.food_lookup_field.reset();
+        }.bind(this), function(xhr, status, err) {
+            // error
+        }.bind(this));
     },
     render: function () {
         var options = this.state.measures.map(function (o) {
@@ -166,8 +158,8 @@ var EntryForm = React.createClass({
             select =
                 <select style={{width:"100%"}} value={this.state.measure_id}
                     onChange={this.handleMeasureChange}>
-                {options}
-            </select>
+                    {options}
+                </select>
         } else {
             select = <div style={{width:"100%"}}></div>
         }
@@ -202,9 +194,38 @@ var EntryForm = React.createClass({
                         </div>
                     </form>
                 </div>
-                <div className="row suggestions">
-                    <EntrySuggestions onSelection={this.handleSuggestionSelection} />
-                </div>
+            </div>
+        );
+    }
+});
+
+exports.FoodEntryForm = FoodEntryForm;
+
+var FoodEntryView = React.createClass({
+    handleFoodEntryFormSubmit: function(state, successCallback, errorCallback) {
+        $.ajax({
+            type: 'post',
+            url: this.props.url,
+            dataType: 'json',
+            success: function(data) {
+                this.props.week_view.loadFromServer();
+                successCallback();
+            }.bind(this),
+            error: function(xhr, status, err) {
+                errorCallback(xhr, status, err);
+            }.bind(this),
+            data: state
+        });
+    },
+    handleSuggestionSelection(selection) {
+        this.refs.FoodEntryForm.handleExternalSelection(selection);
+    },
+    render: function() {
+        return (
+            <div>
+                <FoodEntryForm ref="FoodEntryForm" onSubmit={this.handleFoodEntryFormSubmit} />
+                <EntrySuggestions ref="EntrySuggestions"
+                                  onSelection={this.handleSuggestionSelection} />
             </div>
         );
     }
@@ -506,17 +527,17 @@ var DayMacrosChart = React.createClass({
 });
 
 
+// home page
+
 if (document.getElementById('week-view')) {
     var home_week_view = ReactDOM.render(
         <WeekView url="/api/week"/>,
         document.getElementById('week-view')
     );
-}
-
-
-if (document.getElementById('entry-form')) {
     ReactDOM.render(
-        <EntryForm url="/api/entry" week_view={home_week_view}/>,
+        <FoodEntryView url="/api/entry" week_view={home_week_view}/>,
         document.getElementById('entry-form')
     );
 }
+
+// end hjome page
