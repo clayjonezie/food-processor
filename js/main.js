@@ -39,7 +39,7 @@ var FoodLookupField = React.createClass({
         }
         return (
             <input style={{width: "100%"}}
-                   className="food-lookup-field"
+                   className="food-lookup-field form-control"
                    type="text"
                    placeholder="Raw Apple"
             />
@@ -75,12 +75,19 @@ var EntrySuggestions = React.createClass({
     render: function() {
         var suggestions = this.state.suggestions.map(function(suggestion, i) {
             return (
-                <li key={i}><a role="button" data-key={i} onClick={this.suggestionClicked}>
-                    {suggestion.food_desc}</a></li>
+                <tr key={i}><td data-key={i} onClick={this.suggestionClicked}>
+                    {suggestion.food_desc}</td></tr>
             );
         }.bind(this));
         return (
-            <ul>{suggestions}</ul>
+            <div className="row">
+                <div className="col-md-12">
+                    <h4>Suggestions</h4>
+                </div>
+                <div className="col-md-12">
+                    <table className="table table-bordered"><tbody>{suggestions}</tbody></table>
+                </div>
+            </div>
         );
     }
 });
@@ -126,9 +133,7 @@ var FoodEntryForm = React.createClass({
             id: selection['food_id']},
             count: selection['count']})
     },
-    handleSubmit: function (e) {
-        e.preventDefault();
-
+    handleSubmit: function () {
         if (parseFloat(this.state.count) == NaN) {
             alert("count must be a number")
             return;
@@ -157,6 +162,7 @@ var FoodEntryForm = React.createClass({
         if (options.length != 0) {
             select =
                 <select style={{width:"100%"}} value={this.state.measure_id}
+                        className="form-control"
                     onChange={this.handleMeasureChange}>
                     {options}
                 </select>
@@ -164,12 +170,7 @@ var FoodEntryForm = React.createClass({
             select = <div style={{width:"100%"}}></div>
         }
         return (
-            <div>
-                <div className="row">
-                    <div className="col-md-12"><h2>What have you eaten?</h2></div>
-                </div>
-                <div className="row">
-                    <form className="entryForm" onSubmit={this.handleSubmit}>
+                <div>
                         <div className="col-md-7">
                             <FoodLookupField ref="food_lookup_field"
                                              onSelect={this.handleFoodChange}
@@ -177,6 +178,7 @@ var FoodEntryForm = React.createClass({
                         </div>
                         <div className="col-md-1">
                             <input
+                                className="form-control"
                                 type="text"
                                 size="2"
                                 value={this.state.count}
@@ -186,15 +188,7 @@ var FoodEntryForm = React.createClass({
                         <div className="col-md-3">
                             {select}
                         </div>
-                        <div className="col-md-1">
-                            <input
-                                style={{width: "100%"}}
-                                type="submit"
-                                value="Post" />
-                        </div>
-                    </form>
                 </div>
-            </div>
         );
     }
 });
@@ -220,12 +214,33 @@ var FoodEntryView = React.createClass({
     handleSuggestionSelection(selection) {
         this.refs.FoodEntryForm.handleExternalSelection(selection);
     },
+    handleFoodPlanSelection(selection) {
+        this.refs.FoodEntryForm.handleExternalSelection(selection);
+    },
+    handleSubmit: function(e) {
+        e.preventDefault();
+        this.refs.FoodEntryForm.handleSubmit();
+    },
     render: function() {
         return (
             <div>
-                <FoodEntryForm ref="FoodEntryForm" onSubmit={this.handleFoodEntryFormSubmit} />
-                <EntrySuggestions ref="EntrySuggestions"
-                                  onSelection={this.handleSuggestionSelection} />
+                <div className="row">
+                    <div className="col-md-12"><h2>What have you eaten?</h2></div>
+                </div>
+                <form className="entryForm" onSubmit={this.handleSubmit}>
+                    <div className="row">
+                        <FoodEntryForm ref="FoodEntryForm" onSubmit={this.handleFoodEntryFormSubmit} />
+                        <div className="col-md-1">
+                            <input
+                                className="form-control"
+                                style={{width: "100%"}}
+                                type="submit"
+                                value="Post" />
+                        </div>
+                    </div>
+                    <EntrySuggestions ref="EntrySuggestions"
+                                      onSelection={this.handleSuggestionSelection} />
+                </form>
             </div>
         );
     }
@@ -485,8 +500,6 @@ var DayMacrosChart = React.createClass({
             .attr("y", key_node_padding * 3 + key_node_height * 2)
             .attr("dy", "1em")
             .text("fat");
-
-        console.log(this.state.data);
 
         var total_cals = this.state.data["total"]["calories"];
         var carbohydrate_width = width * this.state.data["carbohydrate"]["calories"] / total_cals;

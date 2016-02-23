@@ -133,3 +133,20 @@ def get_suggestions():
 def get_plan():
     plan = current_user.get_plan()
     return jsonify({'plan': [p.serializable() for p in plan]})
+
+@login_required
+@api.route('/api/plan/add', methods=["POST"])
+def add_plan():
+    plan = MealPlan()
+    plan.user_id = current_user.id
+    plan.meal_time = request.form['mealTime']
+    plan.weekdays = [Weekday.query.get(int(id)) for id in request.form.getlist("weekdays[]")]
+    plan.food_id = request.form['food[id]']
+    plan.measure_id = request.form['measure_id']
+    plan.count = float(request.form['count'])
+
+    db.session.add(plan)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
