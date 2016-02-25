@@ -264,13 +264,6 @@ class FoodDescription(db.Model):
         # couldn't find any
         return self.measurements[0]
 
-    def measurement_select(self, selected, tag_id=None):
-        return render_template("measurement_select.html", 
-                measurements=self.measurements, 
-                selected=selected, 
-                tag_id=tag_id)
-
-
     def from_ndb(self, ndb_row):
         self.id = int(ndb_row[0])
         self.food_group_code = int(ndb_row[1])
@@ -413,11 +406,6 @@ class Tag(db.Model):
     measurement_weight_id = db.Column(db.Integer, db.ForeignKey('measurement_weights.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     at = db.Column(db.DateTime)
-
-    def count_text_field(self):
-        return render_template("count_text_field.html", 
-                count=self.count, 
-                tag_id=self.id)
 
     def __repr__(self):
         return '<Tag: %s %f %s %s>' % (str(self.id), self.count or 0,
