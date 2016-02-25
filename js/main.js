@@ -49,7 +49,7 @@ var FoodLookupField = React.createClass({
 
 var EntrySuggestions = React.createClass({
     getInitialState: function() {
-        return { suggestions: [] };
+        return { suggestions: {plan: [], frequency: []} };
     },
     componentDidMount: function() {
         this.fetchFromServer();
@@ -61,7 +61,14 @@ var EntrySuggestions = React.createClass({
             dataType: 'json',
             cache: false,
             success: function (data) {
-                this.setState({suggestions: data.suggestions});
+                var frequency_suggestions = data.suggestions.filter(function(suggestion) {
+                    return suggestion['type'] == 'frequency';
+                });
+                var plan_suggestions = data.suggestions.filter(function(suggestion) {
+                    return suggestion['type'] == 'plan';
+                });
+
+                this.setState({suggestions: {plan: plan_suggestions, frequency: frequency_suggestions}});
             }.bind(this),
             error: function (xhr, status, err) {
                 console.error(url, status, err.toString());
@@ -70,22 +77,36 @@ var EntrySuggestions = React.createClass({
     },
     suggestionClicked: function(e) {
         var key = $(e.target).attr('data-key');
-        this.props.onSelection(this.state.suggestions[key]);
+        var arr = $(e.target).attr('data-arr');
+        console.log(key);
+        console.log(arr);
+        this.props.onSelection(this.state.suggestions[arr][key]);
     },
     render: function() {
-        var suggestions = this.state.suggestions.map(function(suggestion, i) {
+        var plan_suggestions = this.state.suggestions.plan.map(function(suggestion, i) {
             return (
-                <tr key={i}><td data-key={i} onClick={this.suggestionClicked}>
-                    {suggestion.food_desc}</td></tr>
+                <tr key={i}><td data-key={i} data-arr="plan" onClick={this.suggestionClicked}>
+                    {suggestion.food_desc}
+                </td></tr>
             );
         }.bind(this));
+        var frequency_suggestions = this.state.suggestions.frequency.map(function(suggestion, i) {
+            return (
+                <tr key={i}><td data-key={i} data-arr="frequency" onClick={this.suggestionClicked}>
+                    {suggestion.food_desc}
+                </td></tr>
+            );
+        }.bind(this));
+
         return (
             <div className="row">
-                <div className="col-md-12">
-                    <h4>Suggestions</h4>
+                <div className="col-md-6">
+                    <h4>From Today's Meal Plan</h4>
+                    <table className="table table-bordered"><tbody>{plan_suggestions}</tbody></table>
                 </div>
-                <div className="col-md-12">
-                    <table className="table table-bordered"><tbody>{suggestions}</tbody></table>
+                <div className="col-md-6">
+                    <h4>Frequently Entered</h4>
+                    <table className="table table-bordered"><tbody>{frequency_suggestions}</tbody></table>
                 </div>
             </div>
         );
@@ -101,6 +122,10 @@ var FoodEntryForm = React.createClass({
     handleFoodChange: function (food_obj) {
         this.fetchMeasures(food_obj.id);
         this.setState({food: food_obj});
+
+        if (this.props.setValid) {
+            this.props.setValid(this.state.food != null);
+        }
     },
     handleCountChange: function (e) {
         this.setState({ count: e.target.value });
@@ -131,11 +156,12 @@ var FoodEntryForm = React.createClass({
         this.fetchMeasures(selection['food_id'], selection['measure_id']);
         this.setState({food: {description: selection['food_desc'],
             id: selection['food_id']},
-            count: selection['count']})
+            count: selection['count']});
+        this.props.setValid(true);
     },
     handleSubmit: function () {
         if (parseFloat(this.state.count) == NaN) {
-            alert("count must be a number")
+            alert("count must be a number");
             return;
         } else {
             this.setState({count: parseFloat(this.state.count)})
@@ -180,7 +206,7 @@ var FoodEntryForm = React.createClass({
                             <input
                                 className="form-control"
                                 type="text"
-                                size="2"
+                                size="3"
                                 value={this.state.count}
                                 onChange={this.handleCountChange}
                             />
@@ -196,6 +222,9 @@ var FoodEntryForm = React.createClass({
 exports.FoodEntryForm = FoodEntryForm;
 
 var FoodEntryView = React.createClass({
+    getInitialState: function() {
+        return {valid: false};
+    },
     handleFoodEntryFormSubmit: function(state, successCallback, errorCallback) {
         $.ajax({
             type: 'post',
@@ -221,6 +250,9 @@ var FoodEntryView = React.createClass({
         e.preventDefault();
         this.refs.FoodEntryForm.handleSubmit();
     },
+    setValid: function(valid) {
+        this.setState({valid: valid});
+    },
     render: function() {
         return (
             <div>
@@ -229,13 +261,16 @@ var FoodEntryView = React.createClass({
                 </div>
                 <form className="entryForm" onSubmit={this.handleSubmit}>
                     <div className="row">
-                        <FoodEntryForm ref="FoodEntryForm" onSubmit={this.handleFoodEntryFormSubmit} />
+                        <FoodEntryForm ref="FoodEntryForm" onSubmit={this.handleFoodEntryFormSubmit}
+                                       setValid={this.setValid} />
                         <div className="col-md-1">
                             <input
-                                className="form-control"
+                                className="form-control btn btn-primary"
                                 style={{width: "100%"}}
                                 type="submit"
-                                value="Post" />
+                                value="Post"
+                                disabled={!this.state.valid}
+                            />
                         </div>
                     </div>
                     <EntrySuggestions ref="EntrySuggestions"

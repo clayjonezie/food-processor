@@ -115,16 +115,42 @@ class User(UserMixin, db.Model):
                 goals.append(NutrientGoal(0, self, nut))
         return goals
 
-    def get_suggestions(self, dt=None, lim=10):
+    def get_suggestions(self, lim=10):
+        frequency_suggestions = self.get_frequency_suggestions(lim)
+        plan_suggestions = self.get_plan_suggestions()
+
+        for fs in frequency_suggestions:
+            fs['type'] = 'frequency'
+        for ps in plan_suggestions:
+            ps['type'] = 'plan'
+
+        return plan_suggestions + frequency_suggestions
+
+    def get_plan_suggestions(self):
+        today = datetime.today().isoweekday()
+        mealplans = MealPlan.query.filter(MealPlan.user_id==self.id)\
+            .filter(MealPlan.weekdays.contains(Weekday.query.get(today))).all()
+
+        suggestions = []
+        for mp in mealplans:
+            suggestions.append({
+                'food_id': mp.food_id,
+                'food_desc': FoodDescription.query.get(mp.food_id).long_desc,
+                'count': mp.count,
+                'measure_id': mp.measure_id,
+                'measure_desc': MeasurementWeight.query.get(mp.measure_id).description
+            })
+
+        return suggestions
+
+
+    def get_frequency_suggestions(self, lim=10):
         '''
         :param date: The datetime to get suggestions for
         :return: a list of tags which are likely to be chosen
         '''
-        if dt is None:
-            dt = datetime.now()
 
         # get all the foods this person consumes, and a count with it from sql
-
         conn = db.session.connection()
         foods = conn.execute(db.text("select food_descriptions.id, "
                                      "    food_descriptions.long_desc,"
@@ -138,7 +164,6 @@ class User(UserMixin, db.Model):
                                      "GROUP BY food_descriptions.id "
                                      "ORDER BY cnt DESC limit :limit;"),
                              uid=self.id, limit=lim).fetchall()
-
 
         # this should be pushed to sql. finds the most recent count and measure for each
         results = []

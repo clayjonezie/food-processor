@@ -134,6 +134,7 @@ def get_plan():
     plan = current_user.get_plan()
     return jsonify({'plan': [p.serializable() for p in plan]})
 
+
 @login_required
 @api.route('/api/plan/add', methods=["POST"])
 def add_plan():
