@@ -12,86 +12,6 @@ from . import login_manager
 from . import fplib
 
 
-class RawEntry(db.Model):
-    """
-    A RawEntry object is the text a user initially entered, and the entry point
-    to the NLP pipeline. Currently limited to 1024 chars, this could be easily
-    increased.
-    """
-    __tablename__ = 'raw_entries'
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(1024))
-    at = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    tags = db.relationship('Tag', backref='raw_entry')
-
-    def __init__(self, content=None, at=None, user=None):
-        if at is None:
-            at = datetime.now()
-        self.content = content
-        self.at = at
-        self.user = user
-
-    def __repr__(self):
-        return '<Entry: %r>' % self.content
-
-    def from_tweet(self, tweet, user):
-        self.at = tweet.created_at
-        self.content = tweet.text
-        self.user = user
-        return self
-
-    def nutrients(self, group=1):
-        return FoodDescription.sum_nutrients(self.tags, group=group)
-
-    def pretty_short(self):
-        ps = ""
-        for t in [t for t in self.tags if t.food_description is not None]:
-            ps += str(t.count) + " x " + t.food_description.long_desc + " | "
-
-        return ps
-
-    def serializable(self):
-        return {'id': self.id,
-                'at': str(self.at),
-                'tags': [t.serializable() for t in self.tags]}
-
-
-def get_week_list(user):
-    """
-    :param user: the user
-    returns a list of RawEntry objects for a given user
-    over the last week
-    """
-    now = datetime.utcnow()
-    weekago = now - timedelta(days=6)
-    return RawEntry.query.filter(RawEntry.at >= weekago.isoformat()).\
-        filter(RawEntry.at <= now.isoformat()).\
-        filter(RawEntry.user == user).\
-        order_by('at desc').all()
-
-
-def get_week_hist(user):
-    """
-    :param user: the user
-    creates a dictionary of dates over the last week with lists of
-    entries from that day
-    :return: a list of tuples (date, list of entries) like
-    [(date, [entry1, entry2]), (date2,[...]),...]
-    """
-    now = datetime.utcnow()
-    entries = get_week_list(user)
-    dates = [(now.date() - timedelta(days=r)) for r in range(7)]
-    week = dict()
-    for d in dates:
-        week[d] = list()
-
-    for entry in entries:
-        week[entry.at.date()].append(entry)
-
-    return [(d, week.get(d)) for d in sorted(week.keys(), reverse=True)]
-
-
 def get_week_days(user):
     """
     :param user: the user whos days we want
@@ -153,9 +73,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(256), unique=True)
     password_hash = db.Column(db.String(128))
 
-    raw_entries = db.relationship('RawEntry', backref='user')
     tags = db.relationship('Tag', backref='user')
-    short_preferences = db.relationship('ShortPreference', backref='user')
     nutrient_goals = db.relationship('NutrientGoal', backref='user')
     foods = db.relationship('FoodDescription', 
             secondary=food_description_owner_table, 
@@ -196,7 +114,6 @@ class User(UserMixin, db.Model):
             if nut not in goal_set_nutrients:
                 goals.append(NutrientGoal(0, self, nut))
         return goals
-
 
     def get_suggestions(self, dt=None, lim=10):
         '''
@@ -252,51 +169,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class FoodShort(db.Model):
-    __tablename__ = 'food_shorts'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), unique=True)
-    common_long_id = db.Column(
-        db.Integer, db.ForeignKey('food_descriptions.id'))
-
-    tags = db.relationship('Tag', backref='food_short')
-    short_preferences = db.relationship(
-        'ShortPreference', backref='food_short')
-
-    @staticmethod
-    def get_or_create(short):
-        fs = FoodShort.query.filter(FoodShort.name == short).first()
-        if fs is None:
-            nearby_foods = fplib.nlp.nearby_food_descriptions(short)
-            if len(nearby_foods) > 0:
-                fs = FoodShort(name=short, common_long=nearby_foods[0])
-            else:
-                fs = FoodShort(name=short)
-            db.session.add(fs)
-            db.session.commit()
-        return fs
-
-    @staticmethod
-    def get_food(short, user=None):
-        if short=='' or short is None:
-            return None
-        fs = FoodShort.get_or_create(short)
-
-        if user is not None:
-            SP = ShortPreference
-            pref = SP.query.filter(SP.food_short == fs,
-                                   SP.user == user).first()
-            if pref is None:
-                return fs.common_long
-            else:
-                return pref.food_description
-        else:
-            return fs.common_long
-
-    def __repr__(self):
-        return '<FoodShort: %s -> %s>' % (self.name, self.common_long)
-
-
 class FoodDescription(db.Model):
     __tablename__ = 'food_descriptions'
     id = db.Column(db.Integer, primary_key=True)
@@ -312,8 +184,6 @@ class FoodDescription(db.Model):
     fat_factor = db.Column(db.String(10))
     cho_factor = db.Column(db.String(10))
 
-    shorts = db.relationship('FoodShort',
-                             backref='common_long')
     tags = db.relationship('Tag',
                            backref='food_description')
     short_preferences = db.relationship('ShortPreference',
@@ -393,7 +263,6 @@ class FoodDescription(db.Model):
     
         # couldn't find any
         return self.measurements[0]
-
 
     def measurement_select(self, selected, tag_id=None):
         return render_template("measurement_select.html", 
@@ -535,10 +404,8 @@ class NutrientData(db.Model):
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
-    raw_entry_id = db.Column(db.Integer, db.ForeignKey('raw_entries.id'))
     pos = db.Column(db.Integer)
     text = db.Column(db.String(256))
-    food_short_id = db.Column(db.Integer, db.ForeignKey('food_shorts.id'))
     food_description_id = db.Column(db.Integer, db.ForeignKey('food_descriptions.id'))
     count = db.Column(db.Float)
     size = db.Column(db.Float)
@@ -600,7 +467,6 @@ class Tag(db.Model):
             filter(Tag.at >= start.isoformat()).\
             filter(Tag.at <= end.isoformat()).all()
         return tags
-
 
 
 class ShortPreference(db.Model):

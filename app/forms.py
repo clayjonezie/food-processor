@@ -1,10 +1,8 @@
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, PasswordField, SubmitField, IntegerField
 from wtforms.fields import FieldList, FloatField, HiddenField
-from wtforms.widgets import TextArea
 from wtforms.validators import Required, Email, Length, EqualTo
 from app.models import MeasurementWeight, NutrientData, FoodDescription
-from app.models import Tag, RawEntry
 from app import db
 
 
@@ -14,57 +12,11 @@ class LoginForm(Form):
     submit = SubmitField('Log In')
 
 
-class CreateRawEntryForm(Form):
-    content = StringField('Content', validators=[
-                        Required(), Length(1, 1000)], widget=TextArea())
-    submit = SubmitField('Submit')
-
-
-class AddShortPreference(Form):
-    food_short = StringField('Short', validators=[Required(), Length(1, 255)])
-    food_id = StringField('Food Desc id', validators=[Required()])
-    submit = SubmitField('Submit')
-
-
-class CreateTag(Form):
-    food_id = IntegerField('Food Id', validators=[Required()])
-    submit = SubmitField('Add')
-
-
 class SignupForm(Form):
     email = StringField('Email', validators=[Required(), Email(), Length(1, 64)])
     password = PasswordField('Password', validators=[Required()])
     password_verify = PasswordField('Password', validators=[Required(), EqualTo("password")])
     submit = SubmitField('Sign Up')
-
-
-class RealtimeParseForm(Form):
-    entry = StringField('Entry')
-    food_ids = FieldList(HiddenField('Food Id'))
-    measure_ids = FieldList(HiddenField('Measure Id'))
-    quantities = FieldList(HiddenField('Quantity'))
-    submit = SubmitField('Submit')
-
-    def add_entry(self, user):
-
-        if len(self.food_ids) == 0:
-            return
-
-        new_re = RawEntry(content=None, user=user)
-        db.session.add(new_re)
-        # might add overhead, but gives it an id for relationship
-        db.session.commit()
-
-        for food_id, measure_id, quantity in zip(self.food_ids.data, 
-                self.measure_ids.data, self.quantities.data):
-            tag = Tag()
-            tag.count = quantity
-            tag.food_description_id = food_id
-            tag.measurement_weight_id = measure_id
-            tag.raw_entry_id = new_re.id
-            db.session.add(tag)
-
-        db.session.commit()
 
 
 class FoodEditForm(Form):

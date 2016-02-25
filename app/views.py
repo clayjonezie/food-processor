@@ -4,7 +4,6 @@ from flask.ext.login import login_user, logout_user, login_required, current_use
 from forms import *
 from models import *
 from fplib import nlp
-from datetime import datetime
 
 main = Blueprint('main', 'main',
                  template_folder='templates')
@@ -48,13 +47,6 @@ def edit_food(id):
     return render_template('edit_food.html', food=food, fef=fef)
 
 
-@main.route('/food/search/<query>')
-def food_search(query):
-    results = nlp.nearby_food_descriptions(query) + \
-        nlp.search_food_descriptions(query)
-    return render_template('food_search.html', results=results, query=query)
-
-
 @main.route('/canvas')
 def canvas():
     return render_template("canvas.html")
@@ -81,102 +73,6 @@ def home():
 @main.route('/plan')
 def plan():
     return render_template('plan.html')
-
-
-
-@main.route('/raw_entries/add', methods=['POST'])
-@login_required
-def create_raw_entry():
-    rt_form = RealtimeParseForm()
-    rt_form.add_entry(current_user)
-    return redirect(url_for('main.index'))
-
-
-@main.route('/raw_entries/<int:id>', methods=['GET', 'POST'])
-@login_required
-def raw_entry(id):
-    entry = RawEntry.query.get(id)
-    if entry is None:
-        abort(404)
-    elif entry.user != current_user:
-        abort(403)
-    else:
-        create_tag_form = CreateTag()
-        if request.method == 'POST':
-            if (request.form.has_key("measurement")):
-                measurement = MeasurementWeight.query.get(
-                        int(request.form["measurement"]))
-                tag = Tag.query.get(int(request.form["tag_id"]))
-                tag.measurement = measurement
-                db.session.commit()
-            elif (request.form.has_key("count")):
-                tag = Tag.query.get(int(request.form["tag_id"]))
-                tag.count = float(request.form["count"])
-                db.session.commit()
-            elif create_tag_form.validate():
-                food = FoodDescription.query.get(int(create_tag_form.food_id.data))
-                if food is not None:
-                    tag = Tag()
-                    tag.food_description = food
-                    tag.measurement = food.best_measurement()
-                    tag.count = 1.0
-                    tag.raw_entry = entry
-                    db.session.add(tag)
-                    db.session.commit()
-                    create_tag_form.food_id.data = ''
-
-        return render_template('raw_entry.html', 
-                entry=entry, 
-                create_tag_form=create_tag_form)
-
-
-@main.route('/raw_entries/<int:id>/delete')
-@login_required
-def raw_entry_delete(id):
-    entry = RawEntry.query.get(id)
-    if entry is None:
-        abort(404)
-    elif entry.user != current_user:
-        abort(403)
-    else:
-        db.session.delete(entry)
-        db.session.commit()
-        return redirect(url_for('main.index'))
-
-
-@main.route('/tag/<int:id>/delete')
-@login_required
-def tag_delete(id):
-    tag = Tag.query.get(id)
-    if tag is None:
-        abort(404)
-    elif tag.raw_entry.user != current_user:
-        abort(403)
-    else:
-        entry = tag.raw_entry
-        db.session.delete(tag)
-        db.session.commit()
-        return redirect(url_for('main.raw_entry', id=entry.id))
-
-
-@main.route('/short_preferences', methods=['GET', 'POST'])
-@login_required
-def short_preferences():
-    form = AddShortPreference()
-    if form.validate_on_submit():
-        short = form.food_short.data
-        fs = FoodShort.get_or_create(short)
-        sp = ShortPreference.query.filter(
-            ShortPreference.food_short_id == fs.id,
-            ShortPreference.user_id == current_user.id).first()
-        if sp is None:
-            sp = ShortPreference(food_short=fs, user=current_user)
-
-        sp.food_description = FoodDescription.query.get(int(form.food_id.data))
-        db.session.add(sp)
-        db.session.commit()
-
-    return render_template('short_preferences.html', form=form)
 
 
 @main.route('/goals')
@@ -216,18 +112,6 @@ def create_goal():
     return redirect(url_for('main.goals'))
 
 
-
-@main.route('/short_preferences/<int:id>')
-@login_required
-def short_preference(id):
-    pref = ShortPreference.query.get(id)
-    if pref is None:
-        abort(404)
-    elif pref.user != current_user:
-        abort(403)
-    else:
-        return render_template('short_preference.html', pref=pref)
-
 @main.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
@@ -261,27 +145,6 @@ def login():
 def parse():
     query = request.form['query']
     return jsonify(nlp.realtime_parse(query))
-
-
-@main.route('/parse-autocomplete', methods=['POST', 'GET'])
-def parse_autocomplete():
-    query = request.form['query']
-    return jsonify(nlp.realtime_parse_autocomplete(db, query))
-
-
-@main.route('/food/parse', methods=['POST', 'GET'])
-def food_parse():
-    query = request.form['query']
-    return jsonify(nlp.food_parse(db, query))
-
-
-@main.route('/food/<int:foodid>/measures')
-def food_measures(foodid):
-    food = FoodDescription.query.get(foodid)
-    return jsonify({'measures':
-                    [{'description': measure.description,
-                      'id': measure.id}
-                     for measure in food.measurements]})
 
 
 @main.route('/logout')

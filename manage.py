@@ -23,12 +23,6 @@ manager.add_command("db", MigrateCommand)
 
 
 @manager.command
-def fill():
-    from app.fplib.fpimport import import_all
-    import_all()
-
-
-@manager.command
 def test():
     import unittest
     tests = unittest.TestLoader().discover('tests')
