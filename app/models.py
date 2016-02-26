@@ -220,7 +220,6 @@ class FoodDescription(db.Model):
     owners = db.relationship('User', secondary=food_description_owner_table,
             back_populates='foods')
 
-
     def __init__(self):
         """ in __init__ we will create empty nutrient info (0.0) """
         db.session.add(self)
@@ -236,8 +235,10 @@ class FoodDescription(db.Model):
         db.session.commit()
 
     def serializable(self):
-        return {'description': self.common_name,
-                'id': self.id}
+        return {'id': self.id,
+                'description': self.long_desc,
+                'measures': [m.serializable() for m in self.measurements],
+                'nutrients': [n.serializable() for n in self.nutrients]}
 
     def __repr__(self):
         return "<FoodDescription: %s>" % self.long_desc
@@ -367,7 +368,6 @@ class NutrientDefinition(db.Model):
         self.nutr_no = int(self.nutr_no)
         return self
 
-
     @staticmethod
     def get_group(group):
         if group is None:
@@ -389,18 +389,16 @@ class NutrientData(db.Model):
     val_min = db.Column(db.Float)
     val_max = db.Column(db.Float)
 
-
     def __repr__(self):
         return '<NutrientData: %s: %s: %s>' % (self.food_description,
                                                self.nutrient, self.nutr_val)
 
-
-    def _html_table_row(self):
-        return '<tr><td></td><td></td></tr>'
-
-    def _html_select_item(self):
-        return 'todo'
-
+    def serializable(self):
+        return {'id': self.id,
+                'nutrient_id': self.nutr_no,
+                'description': self.nutrient.desc,
+                'value': self.nutr_val,
+                'unit': self.nutrient.units}
 
     def from_ndb(self, ndb_row):
         self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
@@ -538,8 +536,9 @@ class MeasurementWeight(db.Model):
         return self
 
     def serializable(self):
-        return {'description': self.description,
-                'id': self.id}
+        return {'id': self.id,
+                'description': self.description,
+                'weight': self.gram_weight}
 
 
 class NutrientGoal(db.Model):

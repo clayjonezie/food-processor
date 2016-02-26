@@ -23,7 +23,13 @@ def create_food():
     return render_template('create_food.html')
 
 
-@main.route('/food/<int:id>/edit', methods=['GET','POST'])
+@main.route('/food2')
+@login_required
+def food2():
+    return render_template('food2.html')
+
+
+@main.route('/food/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_food(id):
     fef = FoodEditForm()

@@ -24,12 +24,55 @@ def food_lookup():
     return jsonify(nlp.food_parse(db, query))
 
 
+@api.route('/api/food/<int:food_id>', methods=['GET', 'POST'])
+def food(food_id):
+    """
+    :param food_id: the id of the food item to be returned, 0 if requesting a new item
+    :param: POST data is the same as GET return
+    :return: on GET, a representation of the food item in json
+    {food: {
+        id: <food id>
+        description: <food description>
+        measures: [{id: <measure id>
+                    description: <measure description>
+                    weight: <measure weight>}
+                    ...]
+        nutrients: [{id: <nutrient data id>
+                     nutrient_id: <nutrient definition id>
+                     description: <nutrient description>
+                     value: <nutrient value (in 100g)>
+                     unit: <nutrient unit>}
+                     ...]
+        }
+    }
+    :return: on POST, Yp
+    """
+    if request.method == 'GET':
+        food = FoodDescription.query.get(food_id)
+        return jsonify(food.serializable())
+    elif request.method == 'POST':
+
+        # $.ajax({method: 'POST', contentType: 'application/json; charset=utf-8', url: '/api/food/9003',  data: JSON.stringify({food: {id: 1, desc: 'asdf'}}), dataType: 'json'});
+        print request.headers
+        print request.data
+        print request.form
+        print request.json
+        print request.get_json()
+        return jsonify({'success': True})
+
+
 @api.route('/api/food/<int:food_id>/measures')
 def food_measures(food_id):
     food = FoodDescription.query.get(food_id)
     return jsonify({'measures':
                     [{'description': measure.description,
                       'id': measure.id} for measure in food.measurements]})
+
+@api.route('/api/food/<int:food_id>/measures/<int:measure_id>/delete')
+def delete_food_measure(food_id, measure_id):
+    measure = MeasurementWeight.get(measure_id)
+    db.session.delete(measure)
+    db.session.commit()
 
 
 @login_required
