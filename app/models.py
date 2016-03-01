@@ -240,6 +240,29 @@ class FoodDescription(db.Model):
                 'measures': [m.serializable() for m in self.measurements],
                 'nutrients': [n.serializable() for n in self.nutrients]}
 
+    def from_serializable(self, serialized):
+        self.long_desc = serialized["description"]
+
+        # for lists, we do delete, update, create
+        measure_ids = [m["id"] for m in serialized["measures"]]
+        for m in self.measurements:
+            if m.id not in measure_ids:
+                db.session.delete(m)
+
+        for ms in serialized["measures"]:
+            MeasurementWeight.get(int(ms["id"])).from_serializable(ms)
+
+        for ms in [m for m in serialized["measures"] if m["id"] == 0]:
+            MeasurementWeight().from_serializable(ms)
+
+        for ns in serialized["nutrients"]:
+            NutrientData.get(int(ns["id"])).from_serializable(ns)
+
+        for ns in [n for n in serialized["nutrients"] if n["id"] == 0]:
+            NutrientData().from_serializable(ns)
+
+        return self
+
     def __repr__(self):
         return "<FoodDescription: %s>" % self.long_desc
 
@@ -400,6 +423,9 @@ class NutrientData(db.Model):
                 'value': self.nutr_val,
                 'unit': self.nutrient.units}
 
+    def from_serializable(self, serialized):
+        self.nutr_val = float(serialized["value"])
+
     def from_ndb(self, ndb_row):
         self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
             self.std_error, _, _, _, self.add_nutr_mark, _, self.val_min, \
@@ -536,9 +562,20 @@ class MeasurementWeight(db.Model):
         return self
 
     def serializable(self):
+        """
+        :return: an 'atomic' jsonify-able dict representation of the object
+        """
         return {'id': self.id,
                 'description': self.description,
                 'weight': self.gram_weight}
+
+    def from_serializable(self, serialized):
+        """
+        :param serialized:
+        :return: reverses serializable()
+        """
+        self.description = serialized["description"]
+        self.gram_weight = float(serialized["weight"])
 
 
 class NutrientGoal(db.Model):

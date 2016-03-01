@@ -49,16 +49,20 @@ def food(food_id):
     """
     if request.method == 'GET':
         food = FoodDescription.query.get(food_id)
-        return jsonify(food.serializable())
+        return jsonify({'food': food.serializable()})
     elif request.method == 'POST':
+        if food_id == 0:
+            food = FoodDescription()
+        else:
+            food = FoodDescription.query.get(food_id)
 
-        # $.ajax({method: 'POST', contentType: 'application/json; charset=utf-8', url: '/api/food/9003',  data: JSON.stringify({food: {id: 1, desc: 'asdf'}}), dataType: 'json'});
-        print request.headers
-        print request.data
-        print request.form
-        print request.json
-        print request.get_json()
-        return jsonify({'success': True})
+        json = request.get_json
+        if json is not None:
+            food.from_serializable(request.get_json())
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False,
+                            'reason': 'malformed json'})
 
 
 @api.route('/api/food/<int:food_id>/measures')

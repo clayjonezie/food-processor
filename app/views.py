@@ -23,7 +23,7 @@ def create_food():
     return render_template('create_food.html')
 
 
-@main.route('/food2')
+@main.route('/food')
 @login_required
 def food2():
     return render_template('food2.html')
