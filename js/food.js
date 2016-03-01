@@ -1,8 +1,26 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var Moment = require('moment');
-var d3 = require('d3');
-var main = require('./main_out');
+
+var NutrientDataRow = React.createClass({
+    getInitialState: function() {
+        return {nutrientData: this.props.nutrientData};
+    },
+    handleValueChange: function(e) {
+        var nutrientData = this.state.nutrientData;
+        nutrientData.value = e.target.value;
+        this.setState({nutrientData: nutrientData});
+    },
+    render: function() {
+        return (
+            <tr>
+                <td>{this.state.nutrientData.description}</td>
+                <td><input type="text"
+                           onChange={this.handleValueChange}
+                           value={this.state.nutrientData.value} /></td>
+            </tr>
+        )
+    }
+});
 
 var MeasureRow = React.createClass({
     getInitialState: function() {
@@ -18,7 +36,7 @@ var MeasureRow = React.createClass({
     },
     handleWeightChange: function(e) {
         var measure = this.state.measure;
-        measure.weight = parseFloat(e.target.value);
+        measure.weight = e.target.value;
         this.setState({measure: measure});
     },
     render: function() {
@@ -40,7 +58,6 @@ var MeasureRow = React.createClass({
 var FoodEditForm = React.createClass({
     displayName: 'FoodEditForm',
     getId: function() {
-        console.log(parseInt(window.location.hash.split("#")[1]));
         return parseInt(window.location.hash.split("#")[1]);
     },
     getInitialState: function () {
@@ -63,6 +80,7 @@ var FoodEditForm = React.createClass({
     },
     sendToServer: function(e) {
         e.preventDefault();
+        console.log(this.state);
         var url = '/api/food/' + this.getId();
         $.ajax(url, {
             method: 'POST',
@@ -98,7 +116,7 @@ var FoodEditForm = React.createClass({
             return (
                 <div>
                    <form id="food-form" onSubmit={this.sendToServer}>
-                       <input type="submit" value="submit" readOnly={true}/>
+                       <input type="submit" value="Save Changes" readOnly={true}/>
                        <div className="row">
                            <h2>Name:
                                <input id="description"
@@ -132,7 +150,28 @@ var FoodEditForm = React.createClass({
                                </tbody>
                            </table>
                        </div>
-
+                       <div className="row">
+                           <table id="nutrients" className="table table-bordered">
+                               <tbody>
+                               <tr>
+                                   <th>Nutrient</th>
+                                   <th>Amount in 100g</th>
+                               </tr>
+                               {this.state.food.nutrients.map(function(nutrient) {
+                                   return (
+                                       <NutrientDataRow
+                                           nutrientData={nutrient}
+                                           key={nutrient.id}
+                                       />
+                                   );
+                               }.bind(this))}
+                               <tr>
+                                   <td colSpan="3"><button onClick={this.addMeasure}>add measure</button></td>
+                               </tr>
+                               </tbody>
+                           </table>
+                       </div>
+                       <input type="submit" value="Save Changes" readOnly={true}/>
                    </form>
 
                 </div>

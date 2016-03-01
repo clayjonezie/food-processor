@@ -260,7 +260,7 @@ class FoodDescription(db.Model):
                 mw.ndb_no = self.id
                 mw.from_serializable(ms)
                 db.session.add(mw)
-                db.session.commit()
+            db.session.commit()
 
         for ns in serialized["nutrients"]:
             nsid = int(ns["id"])
@@ -271,7 +271,7 @@ class FoodDescription(db.Model):
                 nd.ndb_no = self.id
                 nd.from_serializable(ns)
                 db.session.add(nd)
-                db.session.commit()
+            db.session.commit()
 
         return self
 
@@ -436,7 +436,10 @@ class NutrientData(db.Model):
                 'unit': self.nutrient.units}
 
     def from_serializable(self, serialized):
-        self.nutr_val = float(serialized["value"])
+        try:
+            self.nutr_val = float(serialized["value"])
+        except ValueError:
+            pass
 
     def from_ndb(self, ndb_row):
         self.ndb_no, self.nutr_no, self.nutr_val, self.num_data_pts, \
@@ -587,7 +590,10 @@ class MeasurementWeight(db.Model):
         :return: reverses serializable()
         """
         self.description = serialized["description"]
-        self.gram_weight = float(serialized["weight"])
+        try:
+            self.gram_weight = float(serialized["weight"])
+        except ValueError:
+            pass
 
 
 class NutrientGoal(db.Model):
