@@ -9,8 +9,7 @@ var MeasureRow = React.createClass({
         return {measure: this.props.measure};
     },
     onDelete: function() {
-        console.log("deleting number " + this.props.i);
-       this.props.onMeasureDelete(this.props.i);
+       this.props.onMeasureDelete(this.props.id);
     },
     handleDescriptionChange: function(e) {
         var measure = this.state.measure;
@@ -56,33 +55,32 @@ var FoodEditForm = React.createClass({
             method: 'GET',
             success: function(data) {
                 this.setState({food: data.food});
-                console.log(data.food);
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(url, status, err.toString());
             }.bind(this)
         });
     },
-    shouldComponentUpdate: function(nextProps, nextState) {
-        console.log("new state for parent");
-        console.log(nextState);
-        return true;
-    },
     sendToServer: function(e) {
         e.preventDefault();
-        console.log("in send to server...");
-        console.log(this.state);
-        //var url = '/api/food/' + this.getId();
-        //$.ajax(url, {
-        //    method: 'POST',
-        //    contentType: 'application/json; charset=utf-8',
-        //    data: JSON.stringify(this.state),
-        //    dataType: 'json'
-        //});
+        var url = '/api/food/' + this.getId();
+        $.ajax(url, {
+            method: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify(this.state),
+            dataType: 'json'
+        });
     },
-    onMeasureDelete: function(i) {
+    addMeasure: function() {
         var food = this.state.food;
-        food.measures.splice(i, 1);
+        food.measures.push({id: 0, description: "", weight: 0});
+        this.setState({food: food});
+    },
+    onMeasureDelete: function(id) {
+        var food = this.state.food;
+        food.measures = food.measures.filter(function(measure) {
+            return measure.id != id;
+        });
         this.setState({food: food});
     },
     handleDescriptionChange: function(e) {
@@ -123,11 +121,14 @@ var FoodEditForm = React.createClass({
                                            <MeasureRow
                                                onMeasureDelete={this.onMeasureDelete}
                                                measure={measure}
-                                               key={i}
-                                               i={i}
+                                               key={measure.id}
+                                               id={measure.id}
                                            />
                                        );
                                    }.bind(this))}
+                               <tr>
+                                   <td colSpan="3"><button onClick={this.addMeasure}>add measure</button></td>
+                               </tr>
                                </tbody>
                            </table>
                        </div>

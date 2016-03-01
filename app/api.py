@@ -58,7 +58,7 @@ def food(food_id):
 
         json = request.get_json
         if json is not None:
-            food.from_serializable(request.get_json())
+            food.from_serializable(request.get_json()["food"])
             return jsonify({'success': True})
         else:
             return jsonify({'success': False,

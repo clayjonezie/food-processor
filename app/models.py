@@ -248,18 +248,30 @@ class FoodDescription(db.Model):
         for m in self.measurements:
             if m.id not in measure_ids:
                 db.session.delete(m)
+                db.session.commit()
 
         for ms in serialized["measures"]:
-            MeasurementWeight.get(int(ms["id"])).from_serializable(ms)
-
-        for ms in [m for m in serialized["measures"] if m["id"] == 0]:
-            MeasurementWeight().from_serializable(ms)
+            msid = int(ms["id"])
+            if msid != 0:
+                print 'id is', msid
+                MeasurementWeight.query.get(msid).from_serializable(ms)
+            else:
+                mw = MeasurementWeight()
+                mw.ndb_no = self.id
+                mw.from_serializable(ms)
+                db.session.add(mw)
+                db.session.commit()
 
         for ns in serialized["nutrients"]:
-            NutrientData.get(int(ns["id"])).from_serializable(ns)
-
-        for ns in [n for n in serialized["nutrients"] if n["id"] == 0]:
-            NutrientData().from_serializable(ns)
+            nsid = int(ns["id"])
+            if nsid != 0:
+                NutrientData.query.get(int(ns["id"])).from_serializable(ns)
+            else:
+                nd = NutrientData()
+                nd.ndb_no = self.id
+                nd.from_serializable(ns)
+                db.session.add(nd)
+                db.session.commit()
 
         return self
 
