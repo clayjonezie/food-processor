@@ -48,21 +48,36 @@ def food(food_id):
     :return: on POST, Yp
     """
     if request.method == 'GET':
-        food = FoodDescription.query.get(food_id)
-        return jsonify({'food': food.serializable()})
-    elif request.method == 'POST':
         if food_id == 0:
             food = FoodDescription()
+        else:
+            food = FoodDescription.query.get(food_id)
+        return jsonify({'food': food.serializable()})
+    elif request.method == 'POST':
+        print 'saw post'
+        if food_id == 0:
+            print 'new food'
+            food = FoodDescription()
+            print 'has id', food.id
         else:
             food = FoodDescription.query.get(food_id)
 
         json = request.get_json
         if json is not None:
             food.from_serializable(request.get_json()["food"])
+            db.session.add(food)
+            db.session.commit()
+            print "updated food", food.id
             return jsonify({'success': True})
         else:
             return jsonify({'success': False,
                             'reason': 'malformed json'})
+
+
+@api.route('/api/food/<int:food_id>/nutrients')
+def food_nutrients(food_id):
+    food = FoodDescription.query.get(food_id)
+    return jsonify({'nutrients': [nd.serializable() for nd in food.nutrients]})
 
 
 @api.route('/api/food/<int:food_id>/measures')
@@ -71,6 +86,7 @@ def food_measures(food_id):
     return jsonify({'measures':
                     [{'description': measure.description,
                       'id': measure.id} for measure in food.measurements]})
+
 
 @api.route('/api/food/<int:food_id>/measures/<int:measure_id>/delete')
 def delete_food_measure(food_id, measure_id):

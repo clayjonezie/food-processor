@@ -1,5 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+var main = require('./main_out');
 
 var NutrientDataRow = React.createClass({
     getInitialState: function() {
@@ -16,9 +17,9 @@ var NutrientDataRow = React.createClass({
                 <td>{this.state.nutrientData.description}</td>
                 <td><input type="text"
                            onChange={this.handleValueChange}
-                           value={this.state.nutrientData.value} /></td>
+                           value={this.state.nutrientData.value.toFixed(4)} /></td>
             </tr>
-        )
+        );
     }
 });
 
@@ -55,6 +56,49 @@ var MeasureRow = React.createClass({
     }
 });
 
+var AddFoodNutrientsForm = React.createClass({
+    getInitialState: function() {
+        return {amount: 0, food: null}
+    },
+    onFoodSelect: function(food_obj) {
+        this.setState({food: food_obj});
+    },
+    handleAmountChange: function(e) {
+        this.setState({amount: e.target.value});
+    },
+    onAddButtonClicked: function(e) {
+        if (this.state.food == null) {
+            alert("please choose a food");
+            return;
+        }
+        this.props.addFoodNutrients(this.state.amount, this.state.food);
+    },
+    render: function() {
+        return (
+            <div className="row">
+                <div className="col-md-2">
+                    Add nutrients from
+                </div>
+                <div className="col-md-1">
+                    <input type="text"
+                           style={{width: "100%"}}
+                           onChange={this.handleAmountChange}
+                           value={this.state.amount} />
+                </div>
+                <div className="col-md-2">
+                    grams of
+                </div>
+                <div className="col-md-6">
+                    <main.FoodLookupField onSelect={this.onFoodSelect} />
+                </div>
+                <div className="col-md-1">
+                    <button onClick={this.onAddButtonClicked}>Add</button>
+                </div>
+            </div>
+        )
+    }
+});
+
 var FoodEditForm = React.createClass({
     displayName: 'FoodEditForm',
     getId: function() {
@@ -86,7 +130,17 @@ var FoodEditForm = React.createClass({
             method: 'POST',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(this.state),
-            dataType: 'json'
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    console.log("successful send");
+                } else {
+                    console.log("failed send");
+                }
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
         });
     },
     addMeasure: function() {
@@ -105,6 +159,32 @@ var FoodEditForm = React.createClass({
         var food = this.state.food;
         food.description = e.target.value;
         this.setState({food: food});
+    },
+    addFoodNutrients: function(amount, food_obj) {
+        console.log("adding " + amount);
+        console.log(food_obj);
+        var url = '/api/food/' + food_obj.id + '/nutrients'
+        $.ajax(url, {
+            method: 'GET',
+            success: function(data) {
+                var food = this.state.food;
+                console.log(data.nutrients);
+                for (var i in data.nutrients) {
+                    var nut = data.nutrients[i];
+                    var stored_nut = food.nutrients.find(function(stored_nut) {
+                        return stored_nut.nutrient_id == nut.nutrient_id;
+                    });
+                    if (stored_nut != undefined) {
+                        console.log("was " + stored_nut.value + " adding " + nut.value + " amt " + amount);
+                        stored_nut.value += nut.value * amount / 100.0;
+                    }
+                }
+                this.setState({food: food});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(url, status, err.toString());
+            }
+        });
     },
     render: function () {
         console.log(this.state);
@@ -150,6 +230,7 @@ var FoodEditForm = React.createClass({
                                </tbody>
                            </table>
                        </div>
+                       <AddFoodNutrientsForm addFoodNutrients={this.addFoodNutrients} />
                        <div className="row">
                            <table id="nutrients" className="table table-bordered">
                                <tbody>
@@ -165,9 +246,6 @@ var FoodEditForm = React.createClass({
                                        />
                                    );
                                }.bind(this))}
-                               <tr>
-                                   <td colSpan="3"><button onClick={this.addMeasure}>add measure</button></td>
-                               </tr>
                                </tbody>
                            </table>
                        </div>

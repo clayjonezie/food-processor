@@ -47,6 +47,8 @@ var FoodLookupField = React.createClass({
     }
 });
 
+exports.FoodLookupField  = FoodLookupField;
+
 var EntrySuggestions = React.createClass({
     getInitialState: function() {
         return { suggestions: {plan: [], frequency: []} };
