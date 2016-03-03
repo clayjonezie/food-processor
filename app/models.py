@@ -561,9 +561,8 @@ class MeasurementWeight(db.Model):
     tags = db.relationship('Tag', backref='measurement')
 
     def __repr__(self):
-        return '<MeasurementWeight: %d %s of %s weighs %dg>' % \
-                (self.amount, self.description, 
-                        self.food_description, self.gram_weight)
+        return '<MeasurementWeight: %s of %s weighs %dg>' % \
+                (self.description, self.food_description.long_desc, self.gram_weight)
 
     def from_ndb(self, ndb_row):
         self.ndb_no = int(ndb_row[0])

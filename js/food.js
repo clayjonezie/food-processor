@@ -17,7 +17,7 @@ var NutrientDataRow = React.createClass({
                 <td>{this.state.nutrientData.description}</td>
                 <td><input type="text"
                            onChange={this.handleValueChange}
-                           value={this.state.nutrientData.value.toFixed(4)} /></td>
+                           value={this.state.nutrientData.value} /></td>
             </tr>
         );
     }
@@ -104,6 +104,12 @@ var FoodEditForm = React.createClass({
     getId: function() {
         return parseInt(window.location.hash.split("#")[1]);
     },
+    setId: function(newId) {
+        window.location.hash = "#" + newId;
+        var food = this.state.food;
+        food.id = newId;
+        this.setState({food: food});
+    },
     getInitialState: function () {
         return { food: null };
     },
@@ -122,6 +128,9 @@ var FoodEditForm = React.createClass({
             }.bind(this)
         });
     },
+    preventDefault: function(e) {
+        e.preventDefault();
+    },
     sendToServer: function(e) {
         e.preventDefault();
         console.log(this.state);
@@ -134,6 +143,7 @@ var FoodEditForm = React.createClass({
             success: function(data) {
                 if (data.success) {
                     console.log("successful send");
+                    this.setId(data.food.id);
                 } else {
                     console.log("failed send");
                 }
@@ -195,8 +205,8 @@ var FoodEditForm = React.createClass({
         } else {
             return (
                 <div>
-                   <form id="food-form" onSubmit={this.sendToServer}>
-                       <input type="submit" value="Save Changes" readOnly={true}/>
+                   <form id="food-form" onSubmit={this.preventDefault} >
+                       <input type="submit" value="Save Changes" readOnly={true} onClick={this.sendToServer} />
                        <div className="row">
                            <h2>Name:
                                <input id="description"

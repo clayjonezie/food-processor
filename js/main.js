@@ -17,11 +17,10 @@ var FoodLookupField = React.createClass({
             dataType: 'json',
             deferRequestBy: 300,
             onSearchStart: function () {
-                // should provide feedback
-                console.log("searchiing");
+                $("#food-lookup-field-loading-indicator").show();
             },
             onSearchComplete: function (query, suggestions) {
-                console.log("dne searchiing");
+                $("#food-lookup-field-loading-indicator").hide();
             },
             onSelect: function (suggestion) {
                 var food_id = suggestion.data['food-id'];
@@ -38,11 +37,14 @@ var FoodLookupField = React.createClass({
             $("input.food-lookup-field").val(this.props.food.description);
         }
         return (
-            <input style={{width: "100%"}}
-                   className="food-lookup-field form-control"
-                   type="text"
-                   placeholder="Raw Apple"
-            />
+            <div>
+                <p id="food-lookup-field-loading-indicator"><i>loading...</i></p>
+                <input style={{width: "100%"}}
+                       className="food-lookup-field form-control"
+                       type="text"
+                       placeholder="Raw Apple"
+                />
+            </div>
         );
     }
 });

@@ -47,6 +47,7 @@ def food(food_id):
     }
     :return: on POST, Yp
     """
+    food = None
     if request.method == 'GET':
         if food_id == 0:
             food = FoodDescription()
@@ -54,11 +55,8 @@ def food(food_id):
             food = FoodDescription.query.get(food_id)
         return jsonify({'food': food.serializable()})
     elif request.method == 'POST':
-        print 'saw post'
         if food_id == 0:
-            print 'new food'
             food = FoodDescription()
-            print 'has id', food.id
         else:
             food = FoodDescription.query.get(food_id)
 
@@ -67,8 +65,8 @@ def food(food_id):
             food.from_serializable(request.get_json()["food"])
             db.session.add(food)
             db.session.commit()
-            print "updated food", food.id
-            return jsonify({'success': True})
+            return jsonify({'success': True,
+                            'food': food.serializable()})
         else:
             return jsonify({'success': False,
                             'reason': 'malformed json'})
