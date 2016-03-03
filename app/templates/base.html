@@ -25,7 +25,7 @@
                     {% if current_user.is_authenticated %}
                         | <li style="display:inline"><a href="{{ url_for('main.goals') }}">goals</a></li>
                         | <li style="display:inline"><a href="{{ url_for('main.plan') }}">meal plan</a></li>
-                        | <li style="display:inline"><a href="{{ url_for('main.food' }}#0">manually add food</a></li>
+                        | <li style="display:inline"><a href="{{ url_for('main.food') }}#0">manually add food</a></li>
                     {% endif %}
                 </ul>
             {% endblock %}
