@@ -9,14 +9,6 @@ main = Blueprint('main', 'main',
                  template_folder='templates')
 
 
-@main.route('/food/<int:id>')
-def food(id):
-    food = FoodDescription.query.filter_by(id=id).first()
-    if food is None:
-        abort(404)
-    return render_template('food.html', food=food)
-
-
 @main.route('/food/add', methods=['GET', 'POST'])
 @login_required
 def create_food():
@@ -25,32 +17,8 @@ def create_food():
 
 @main.route('/food')
 @login_required
-def food2():
-    return render_template('food2.html')
-
-
-@main.route('/food/<int:id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_food(id):
-    fef = FoodEditForm()
-    if id == 0:
-        food = FoodDescription()
-        return redirect(url_for('main.edit_food', id=food.id))
-    else:
-        food = FoodDescription.query.get(id)
-    if request.method=='POST':
-        if fef.validate():
-            fef.update_models(food)
-        else:
-            for field, errors in fef.errors.items():
-                flash(errors)
-    elif request.method=='GET':
-        if len(food.measurements) == 0:
-            food.measurements.append(MeasurementWeight())
-        fef.populate(food)
-
-
-    return render_template('edit_food.html', food=food, fef=fef)
+def food():
+    return render_template('food.html')
 
 
 @main.route('/canvas')

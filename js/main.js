@@ -11,6 +11,7 @@ var FoodLookupField = React.createClass({
     },
     componentDidMount: function () {
         var component = this;
+        $("#food-lookup-field-loading-indicator").hide();
         $('input.food-lookup-field').autocomplete({
             serviceUrl: '/api/food_lookup',
             type: 'POST',
@@ -31,6 +32,7 @@ var FoodLookupField = React.createClass({
     },
     reset: function () {
         $('input.food-lookup-field').val('');
+        $("#food-lookup-field-loading-indicator").hide();
     },
     render: function () {
         if (this.props.food != null) {
@@ -162,6 +164,7 @@ var FoodEntryForm = React.createClass({
             id: selection['food_id']},
             count: selection['count']});
         this.props.setValid(true);
+        $("#food-lookup-field-loading-indicator").hide();
     },
     handleSubmit: function () {
         if (parseFloat(this.state.count) == NaN) {
